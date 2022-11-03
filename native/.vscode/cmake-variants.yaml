@@ -1,0 +1,26 @@
+buildType:
+  default: debug
+  description: Build type
+  choices:
+    debug:
+      short: Debug
+      long: Build with debugging information
+      buildType: Debug
+    release:
+      short: Release
+      long: Optimize the resulting binaries
+      buildType: Release
+
+enableFuzzing:
+  default: 'no'
+  choices:
+    'yes':
+      short: With Fuzzer
+      long: Build with libfuzzer and sanitizer enabled
+      settings:
+        ENABLE_FUZZING: yes
+    'no':
+      short: Without Fuzzer
+      long: Build without fuzzer
+      settings:
+        ENABLE_FUZZING: no
