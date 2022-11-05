@@ -2,13 +2,13 @@
 #include <iostream>
 #include <cstring>
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    if(argc < 2){
-        std::cout << "Too few args" << std::endl;
-        exit(0);
-    }
+    //if (argc < 2) {
+    //    std::cout << "Too few args" << std::endl;
+    //    exit(0);
+    //}
     Parser parser;
-    parser.ParseFile(argv[1], strlen(argv[1]));
+    parser.ParseFile(nullptr, 0);//(argv[1], strlen(argv[1]));
     return 0;
 }
