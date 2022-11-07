@@ -21,6 +21,8 @@
 #define CAFF_HEADER_SIZE_ERROR 10
 #define CAFF_DATE_ERROR 11
 #define CAFF_CREATOR_LENGTH_ERROR 12
+#define CAFF_NO_ANIM_NUM 13
+#define CAFF_ANIMATION_BLOCK_LENGTH_ERROR 14
 
 
 //************************************************************************************************
@@ -64,10 +66,10 @@ public:
     ~Parser();
     void ParseFile(std::string fileName);
     void saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byteArr, std::string filename);
-    size_t parseCiff(std::vector<char> ciffFile);
+    size_t parseCiff(std::vector<char> ciffFile, std::string filename);
     size_t validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock);
     size_t validateCAFFCredit(std::vector<char> CAFFCredit);
-    size_t parseCaff(std::vector<char> caffFile);
+    size_t parseCaff(std::vector<char> caffFile, std::string filename);
     std::vector<char> ReadAllBytes(std::string filename);
     uint16_t bytes2uint16_t(std::vector<char> vec);
     uint32_t bytes2uint32_t(std::vector<char> vec);
