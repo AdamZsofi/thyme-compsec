@@ -19,6 +19,9 @@
 #define BLOCK_LENGTH_ERROR 8 
 #define CAFF_MAGIC_ERROR 9
 #define CAFF_HEADER_SIZE_ERROR 10
+#define CAFF_DATE_ERROR 11
+#define CAFF_CREATOR_LENGTH_ERROR 12
+
 
 //************************************************************************************************
 #pragma pack(push, 1) //alignment!
@@ -59,7 +62,7 @@ class Parser
 public:
     Parser();
     ~Parser();
-    void ParseFile(char* data, int len);
+    void ParseFile(std::string fileName);
     void saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byteArr, std::string filename);
     size_t parseCiff(std::vector<char> ciffFile);
     size_t validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock);
@@ -69,4 +72,5 @@ public:
     uint16_t bytes2uint16_t(std::vector<char> vec);
     uint32_t bytes2uint32_t(std::vector<char> vec);
     uint64_t bytes2uint64_t(std::vector<char> vec);
+    bool validateDate(uint16_t year, uint8_t month, uint8_t day, uint8_t hour, uint8_t minute);
 };
