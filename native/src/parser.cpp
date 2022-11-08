@@ -3,39 +3,6 @@
 Parser::Parser() {}
 Parser::~Parser() {}
 
-void Parser::ParseFile(std::string fileName)
-{
-    std::string rawFileName = fileName.substr(fileName.find_last_of("/\\") + 1);
-    
-    const std::string ext(".caff");
-    if ( rawFileName.size() > ext.size() && rawFileName.substr(rawFileName.size() - ext.size()) == ".caff" )    {
-        rawFileName = rawFileName.substr(0, rawFileName.size() - ext.size());
-    }
-    std::cout << rawFileName <<std::endl;
-    std::vector<char> caffFile = ReadAllBytes(fileName);
-    if(caffFile.size()){
-        parseCaff(caffFile, rawFileName);
-    }
-}
-
-std::vector<char> Parser::ReadAllBytes(std::string filename){
-    std::ifstream ifs(filename, std::ios::binary | std::ios::ate);
-    std::ifstream::pos_type pos = ifs.tellg();
-    if(pos < 0){
-        //todo proper error handling
-        std::cout <<"non existing file" <<std::endl;
-        return std::vector<char>{};
-    }else if (pos == 0) {
-        return std::vector<char>{};
-    }
-
-    std::vector<char>  result(pos);
-    ifs.seekg(0, std::ios::beg);
-    ifs.read(&result[0], pos);
-    return result;
-}
-
-
 void Parser::saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byteArr, std::string filename) {
     std::ofstream fout(filename, std::ios::binary);
     int32_t numberOfPixels = width * height;
@@ -142,7 +109,7 @@ size_t Parser::validateCAFFCredit(std::vector<char> CAFFCredit) {
 size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
     //CAFF_HEADER STUFF
     //--------------------------------------------------------------------------------------------------
-    std::vector<char> CAFFHeaderBlock = { caffFile.begin(), caffFile.begin() + 1 + 8 + 4 + 8 + 8 };
+    std::vector<char> CAFFHeaderBlock = { caffFile.begin(), caffFile.begin() + 1 + 8 + 4 + 8 + 8};
     if (CAFFHeaderBlock[0] != 0x1) {
         std::cout<< "Invalid CAFF header block id" << std::endl;
         return BLOCK_ID_ERROR;
