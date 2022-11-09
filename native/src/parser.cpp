@@ -110,7 +110,7 @@ size_t Parser::validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock) {
     return 0;
 }
 
-size_t Parser::validateCAFFCredit(std::vector<char> CAFFCredit) {
+size_t Parser::validateCAFFCredit(std::vector<char> &CAFFCredit) {
 
     uint16_t year = bytes2uint16_t({ CAFFCredit.begin(), CAFFCredit.begin() + 2 });
     uint8_t month = CAFFCredit[2];
