@@ -9,7 +9,6 @@ std::vector<char> ReadAllBytes(std::string filename){
     std::ifstream ifs(filename, std::ios::binary | std::ios::ate);
     std::ifstream::pos_type pos = ifs.tellg();
     if(pos < 0){
-        //todo proper error handling
         std::cout <<"non existing file" <<std::endl;
         return std::vector<char>{};
     }else if (pos == 0) {
@@ -40,7 +39,7 @@ int main(int argc, char** argv)
 	if ( rawFileName.size() > ext.size() && rawFileName.substr(rawFileName.size() - ext.size()) == ".caff" )    {
         rawFileName = rawFileName.substr(0, rawFileName.size() - ext.size());
     }
-    std::cout << rawFileName <<std::endl;
+    std::cout <<"Raw filename: " <<  rawFileName <<std::endl;
 
 	std::vector<char> caffFile = ReadAllBytes(fileName);
 	if(!caffFile.size()){

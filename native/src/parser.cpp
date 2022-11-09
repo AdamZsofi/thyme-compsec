@@ -29,7 +29,17 @@ void Parser::saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byt
     fout.close();
 }
 
-size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename) {
+void Parser::saveMetaData(std::string filename, uint64_t duration, std::string caption, std::vector<std::string> tags){
+    std::ofstream fout(filename);
+    fout << duration << std::endl;
+    fout << caption << std::endl;
+    for(std::string tag : tags){
+        fout << tag << std::endl;
+    }
+    fout.close();
+}
+
+size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint64_t duration) {
 
     if (ciffFile[0] != 'C' || ciffFile[1] != 'I' || ciffFile[2] != 'F' || ciffFile[3] != 'F') {
         return CIFF_MAGIC_ERROR;
@@ -53,14 +63,31 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename) {
         std::cout<<"CIFF_CONTENT_SIZE_ERROR width* height*3"<< std::endl;
         return CIFF_CONTENT_SIZE_ERROR;        
     }
-    std::string caption = "";
-    size_t idx = 0;
-    while (ciffFile[36 + idx] != '\n') {
-        caption += ciffFile[36 + idx++];
+    std::string cat(ciffFile.begin() + 36, ciffFile.begin() + headerSize);
+    if(cat.find("\n") == std::string::npos){
+        std::cout << "no \\n error" << std::endl;
+        return 999;
     }
-    std::vector<char> pixels = { ciffFile.begin() + headerSize, ciffFile.end() };
+    std::istringstream captionAndTag(cat);
+    std::string caption;
+    if(!getline(captionAndTag, caption)){
+        std::cout << "No caption and tag" << std::endl;
+        return 999;
+    }
+    std::vector<std::string> tags;
+    std::string tmp;
 
-    saveBytesAsBMP(width, height, pixels, filename);
+    while (getline(captionAndTag, tmp, '\0')) {
+        if(tmp.find("\n") != std::string::npos){
+            std::cout << "Multiline tag detected" << std::endl;
+            return 999;
+        }
+        tags.push_back(tmp);
+    }
+
+    std::vector<char> pixels = { ciffFile.begin() + headerSize, ciffFile.end() };
+    saveMetaData(filename + ".txt", duration, caption, tags);
+    saveBytesAsBMP(width, height, pixels, filename + ".bmp");
     std::cout << headerSize << "; " << contentSize << "; " << width << "; " << height << "; " << caption << std::endl;
     return 0;
 }
@@ -94,19 +121,29 @@ size_t Parser::validateCAFFCredit(std::vector<char> CAFFCredit) {
         std::cout << "CAFF_DATE_ERROR" << std::endl;
         return CAFF_DATE_ERROR;
     }
-
-    uint64_t creator_len = bytes2uint64_t({ CAFFCredit.begin() + 6, CAFFCredit.begin() + 6 + 8 });
-    if (CAFFCredit.size() != creator_len + 6 + 8) {
-        std::cout<<CAFFCredit.size() << creator_len;
+    std::cout<<"Date: ";
+    std::cout<< year << "."<< +month << "." << +day << " " << +hour << ":" << +minute << std::endl;
+    uint64_t creatorLen = bytes2uint64_t({ CAFFCredit.begin() + 6, CAFFCredit.begin() + 6 + 8 });
+    if (CAFFCredit.size() != creatorLen + 6 + 8) {
+        std::cout<<CAFFCredit.size() << creatorLen;
         std::cout << "CAFF_CREATOR_LENGTH_ERROR" << std::endl;
         return CAFF_CREATOR_LENGTH_ERROR;
     }
-
-    std::vector<char> creator{ CAFFCredit.begin() + 13, CAFFCredit.end() };
+    if(!creatorLen){
+        std::cout<< "Empty creator " << std::endl;
+        return 999;
+    }
+    std::string creator{ CAFFCredit.begin() + 13, CAFFCredit.end() };
+    std::cout<< "Creator: " << creator << std::endl;
     return 0;
 }
 
 size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
+    size_t creditOffset = 9 + 4 + 8 + 8;
+    size_t rawSize = caffFile.size();
+    if(rawSize < creditOffset + 9){//safe utill caff credits creatorLen
+        return CAFF_TOO_SHORT;
+    }
     //CAFF_HEADER STUFF
     //--------------------------------------------------------------------------------------------------
     std::vector<char> CAFFHeaderBlock = { caffFile.begin(), caffFile.begin() + 1 + 8 + 4 + 8 + 8};
@@ -141,7 +178,6 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
 
     //CAFF_CREDITS STUFF
     //--------------------------------------------------------------------------------------------------
-    size_t creditOffset = 9 + 4 + 8 + 8;
     std::vector<char> CAFFCreditBlockFrame = { caffFile.begin() + creditOffset, caffFile.begin() + creditOffset + 9 };
     if (CAFFCreditBlockFrame[0] != 0x2) {
         std::cout<< "BLOCK_ID_ERROR" << std::endl;
@@ -155,6 +191,9 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
     }else if(caffFile.size() > ciffBlockOffset && caffFile[ciffBlockOffset] != 0x3){
         std::cout<< "CAFF_CREATOR_LENGTH_ERROR2" << std::endl;
         return CAFF_CREATOR_LENGTH_ERROR;
+    }else if(creditsLength == 0){
+        std::cout<< "CAFF_CREATOR_LENGTH_ERROR2" << std::endl;
+        return CAFF_CREATOR_LENGTH_ERROR;
     }
     std::vector<char> CAFFCredits = { caffFile.begin() + creditOffset + 9, caffFile.begin() + creditOffset + 9 + creditsLength };
     size_t result = validateCAFFCredit(CAFFCredits);
@@ -162,10 +201,10 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
         return result;
     }
 
-    //CAFF ANIMATION
+    //CAFF ANIMATION STUFF
     //--------------------------------------------------------------------------------------------------
+    std::cout << "Expected CIFF Frames: "<< numAnim << std::endl;
     for(uint64_t ciffNum = 0; ciffNum < numAnim; ciffNum++){
-        std::cout << "numanim: "<< numAnim << std::endl;
         std::vector<char> CIFFAnimationBLock = { caffFile.begin() + ciffBlockOffset, caffFile.begin() + ciffBlockOffset + 9 };
         if (CIFFAnimationBLock[0] != 0x3) {
             return BLOCK_ID_ERROR;
@@ -180,12 +219,11 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
 
         uint64_t duration = bytes2uint64_t({ CIFFAnimation.begin(), CIFFAnimation.begin() + 8 });
         std::vector<char> cifFile = { CIFFAnimation.begin() + 8, CIFFAnimation.begin() + caffAnimationBlockLength};//CIFFAnimation.end()
-        std::cout << cifFile.size() << std::endl;        
         std::ostringstream ss;
         ss << std::setw(3) << std::setfill('0') << ciffNum;
         std::string oNum(ss.str());
-        std::string bpmFileName = filename  + "_"+ oNum + ".bpm";
-        parseCiff(cifFile, bpmFileName);
+        std::string FileName = filename  + "_"+ oNum;
+        parseCiff(cifFile, FileName, duration);
         ciffBlockOffset += caffAnimationBlockLength + 9;
     }
     return 0;
