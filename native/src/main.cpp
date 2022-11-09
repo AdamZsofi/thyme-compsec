@@ -27,11 +27,15 @@ int main(int argc, char** argv)
     if (argc < 2) {
         std::cout << "Too few args" << std::endl;
         exit(-1);
-    }else if(argc >2){
+    }else if(argc >3){
         std::cout << "Too many args" << std::endl;
         exit(-1);
     }
     std::string fileName = argv[1];
+    std::string outFileName = "";
+    if(argc == 3){
+        outFileName = argv[2];
+    }
 
 	std::string rawFileName = fileName.substr(fileName.find_last_of("/\\") + 1);
 
@@ -48,7 +52,7 @@ int main(int argc, char** argv)
 	}
 
     Parser parser;
-    parser.parseCaff(caffFile, rawFileName);
+    parser.parseCaff(caffFile, rawFileName, outFileName);
     return 0;
 }
 

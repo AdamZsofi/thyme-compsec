@@ -72,10 +72,10 @@ public:
     ~Parser();
     void saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byteArr, std::string filename);
     void saveMetaData(std::string filename, uint64_t durationm, std::string caption, std::vector<std::string> tags);
-    size_t parseCiff(std::vector<char> ciffFile, std::string filename, uint64_t duration);
+    size_t parseCiff(std::vector<char> ciffFile, std::string filename, std::string outFilename,uint64_t duration);
     size_t validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock);
     size_t validateCAFFCredit(std::vector<char> &CAFFCredit);
-    size_t parseCaff(std::vector<char> caffFile, std::string filename);
+    size_t parseCaff(std::vector<char> caffFile, std::string filename, std::string outFileName);
     uint16_t bytes2uint16_t(std::vector<char> vec);
     uint32_t bytes2uint32_t(std::vector<char> vec);
     uint64_t bytes2uint64_t(std::vector<char> vec);
