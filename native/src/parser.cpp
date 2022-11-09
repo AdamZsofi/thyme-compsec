@@ -219,7 +219,7 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
             return CAFF_ANIMATION_BLOCK_LENGTH_ERROR;
         }
 
-        if(caffFile.size() < ciffBlockOffset + 9 + caffAnimationBlockLength){
+        if(caffFile.size() < ciffBlockOffset + 9 + caffAnimationBlockLength || caffFile.size() < ciffBlockOffset + 9 + 8){
             std::cout << "short caffFile" << std::endl;
             return CAFF_TOO_SHORT;
         }        
