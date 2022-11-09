@@ -33,10 +33,7 @@ int main(int argc, char** argv)
     }
     std::string fileName = argv[1];
     std::string outFileName = "";
-    if(argc == 3){
-        outFileName = argv[2];
-    }
-
+    
 	std::string rawFileName = fileName.substr(fileName.find_last_of("/\\") + 1);
 
 	const std::string ext(".caff");
@@ -44,6 +41,12 @@ int main(int argc, char** argv)
         rawFileName = rawFileName.substr(0, rawFileName.size() - ext.size());
     }
     std::cout <<"Raw filename: " <<  rawFileName <<std::endl;
+	
+	if(argc == 3){
+        outFileName = argv[2];
+    } else {
+		outFileName = rawFileName;
+	}
 
 	std::vector<char> caffFile = ReadAllBytes(fileName);
 	if(!caffFile.size()){
