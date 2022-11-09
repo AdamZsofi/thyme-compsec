@@ -225,6 +225,10 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
         }        
         std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
 
+        if(CIFFAnimation.size() < 8){
+            std::cout << "short caffFile" << std::endl;
+            return CAFF_TOO_SHORT;
+        }        
         uint64_t duration = bytes2uint64_t({ CIFFAnimation.begin(), CIFFAnimation.begin() + 8 });
         std::vector<char> cifFile = { CIFFAnimation.begin() + 8, CIFFAnimation.begin() + caffAnimationBlockLength};//CIFFAnimation.end()
         std::ostringstream ss;
