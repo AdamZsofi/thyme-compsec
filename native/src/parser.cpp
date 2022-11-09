@@ -218,8 +218,11 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
             std::cout<< "wrong caffAnimationBlockLength" << std::endl;
             return CAFF_ANIMATION_BLOCK_LENGTH_ERROR;
         }
-        //todo block size check
-        std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
+
+        if(caffFile.size() < ciffBlockOffset + 9 + caffAnimationBlockLength){
+            std::cout << "GRAAAAAAAAAAA2" << std::endl;
+            return 999;
+        }        std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
 
         uint64_t duration = bytes2uint64_t({ CIFFAnimation.begin(), CIFFAnimation.begin() + 8 });
         std::vector<char> cifFile = { CIFFAnimation.begin() + 8, CIFFAnimation.begin() + caffAnimationBlockLength};//CIFFAnimation.end()
