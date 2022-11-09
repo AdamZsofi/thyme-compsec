@@ -25,6 +25,11 @@
 #define CAFF_ANIMATION_BLOCK_LENGTH_ERROR 14
 #define CAFF_TOO_SHORT 15
 
+#define CIFF_NO_ENDL 16
+#define CIFF_NO_CAPTION_AND_TAG 17
+#define CIFF_MULTILINE_TAG 18
+#define CIFF_EMPTY_CREATOR 19
+
 
 //************************************************************************************************
 #pragma pack(push, 1) //alignment!

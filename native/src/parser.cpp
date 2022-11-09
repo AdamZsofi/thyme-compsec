@@ -66,13 +66,13 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint6
     std::string cat(ciffFile.begin() + 36, ciffFile.begin() + headerSize);
     if(cat.find("\n") == std::string::npos){
         std::cout << "no \\n error" << std::endl;
-        return 999;
+        return CIFF_NO_ENDL;
     }
     std::istringstream captionAndTag(cat);
     std::string caption;
     if(!getline(captionAndTag, caption)){
         std::cout << "No caption and tag" << std::endl;
-        return 999;
+        return CIFF_NO_CAPTION_AND_TAG;
     }
     std::vector<std::string> tags;
     std::string tmp;
@@ -80,7 +80,7 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint6
     while (getline(captionAndTag, tmp, '\0')) {
         if(tmp.find("\n") != std::string::npos){
             std::cout << "Multiline tag detected" << std::endl;
-            return 999;
+            return CIFF_MULTILINE_TAG;
         }
         tags.push_back(tmp);
     }
@@ -131,7 +131,7 @@ size_t Parser::validateCAFFCredit(std::vector<char> &CAFFCredit) {
     }
     if(!creatorLen){
         std::cout<< "Empty creator " << std::endl;
-        return 999;
+        return CIFF_EMPTY_CREATOR;
     }
     std::string creator{ CAFFCredit.begin() + 13, CAFFCredit.end() };
     std::cout<< "Creator: " << creator << std::endl;
@@ -206,8 +206,8 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
     std::cout << "Expected CIFF Frames: "<< numAnim << std::endl;
     for(uint64_t ciffNum = 0; ciffNum < numAnim; ciffNum++){
         if(caffFile.size() < ciffBlockOffset + 9){
-            std::cout << "GRAAAAAAAAAAA" << std::endl;
-            return 999;
+            std::cout << "short caffFile" << std::endl;
+            return CAFF_TOO_SHORT;
         }
         std::vector<char> CIFFAnimationBLock = { caffFile.begin() + ciffBlockOffset, caffFile.begin() + ciffBlockOffset + 9 };
         if (CIFFAnimationBLock[0] != 0x3) {
@@ -220,9 +220,10 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
         }
 
         if(caffFile.size() < ciffBlockOffset + 9 + caffAnimationBlockLength){
-            std::cout << "GRAAAAAAAAAAA2" << std::endl;
-            return 999;
-        }        std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
+            std::cout << "short caffFile" << std::endl;
+            return CAFF_TOO_SHORT;
+        }        
+        std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
 
         uint64_t duration = bytes2uint64_t({ CIFFAnimation.begin(), CIFFAnimation.begin() + 8 });
         std::vector<char> cifFile = { CIFFAnimation.begin() + 8, CIFFAnimation.begin() + caffAnimationBlockLength};//CIFFAnimation.end()
