@@ -205,6 +205,10 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
     //--------------------------------------------------------------------------------------------------
     std::cout << "Expected CIFF Frames: "<< numAnim << std::endl;
     for(uint64_t ciffNum = 0; ciffNum < numAnim; ciffNum++){
+        if(caffFile.size() < ciffBlockOffset + 9){
+            std::cout << "GRAAAAAAAAAAA" << std::endl;
+            return 999;
+        }
         std::vector<char> CIFFAnimationBLock = { caffFile.begin() + ciffBlockOffset, caffFile.begin() + ciffBlockOffset + 9 };
         if (CIFFAnimationBLock[0] != 0x3) {
             return BLOCK_ID_ERROR;
