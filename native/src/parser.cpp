@@ -119,6 +119,10 @@ size_t Parser::validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock) {
 
 size_t Parser::validateCAFFCredit(std::vector<char> &CAFFCredit) {
 
+    if(CAFFCredit.size() < 14){
+        std::cout << "CAFF_TOO_SHORT" << std::endl;
+        return CAFF_TOO_SHORT;
+    }
     uint16_t year = bytes2uint16_t({ CAFFCredit.begin(), CAFFCredit.begin() + 2 });
     uint8_t month = CAFFCredit[2];
     uint8_t day = CAFFCredit[3];
