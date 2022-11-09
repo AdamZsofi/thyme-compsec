@@ -12,7 +12,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	std::vector<char> inputVec(data, &data[size-1]);
 
     Parser parser;
-    parser.parseCaff(inputVec, "testfile");
+    parser.parseCaff(inputVec, "testfile", "/dev/null");
 	} catch(std::exception& e){
 		std::cout << e.what();
 	}

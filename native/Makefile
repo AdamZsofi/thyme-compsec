@@ -1,8 +1,8 @@
 BUILDDIR = ./build
 SRCDIR = ./src
-CXX = g++
-CXXFLAGS = -Wall -fstack-protector -fpie -O2 -Werror=format-security -Werror=implicit-function-declaration -D_FORTIFY_SOURCE=2
-FUZZFLAGS = -g -Wall -fstack-protector -fpie -fsanitize=fuzzer,address 
+#CXX = g++
+CXXFLAGS = -Wall -fstack-protector -fpie -O2 -Werror=format-security -D_FORTIFY_SOURCE=2 -Wno-reorder
+FUZZFLAGS = -g -Wall -fstack-protector -fpie -fsanitize=fuzzer,address -Wno-reorder
 INCLUDES = -I./include
 
 all: ${BUILDDIR}/main.o ${BUILDDIR}/parser.o

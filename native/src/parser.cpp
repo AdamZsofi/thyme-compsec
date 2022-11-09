@@ -48,7 +48,7 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, std::
         return CIFF_MAGIC_ERROR;
     }
 
-    int64_t headerSize = bytes2uint64_t({ ciffFile.begin() + 4, ciffFile.begin() + 12 });
+    uint64_t headerSize = bytes2uint64_t({ ciffFile.begin() + 4, ciffFile.begin() + 12 });
     if(headerSize < 36){
         std::cout << "SHORT" << std::endl;
         return CAFF_TOO_SHORT;
@@ -57,14 +57,14 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, std::
         std::cout<<"CIFFHEADERERRROR"<< std::endl;
         return CIFF_HEADER_SIZE_ERROR;
     }
-    int64_t contentSize = bytes2uint64_t({ ciffFile.begin() + 12, ciffFile.begin() + 20 });
+    uint64_t contentSize = bytes2uint64_t({ ciffFile.begin() + 12, ciffFile.begin() + 20 });
     if(ciffFile.size() != contentSize + headerSize){
         std::cout<<ciffFile.size() << "; " << contentSize + headerSize << std::endl;
         std::cout<<"CIFF_CONTENT_SIZE_ERROR"<< std::endl;
         return CIFF_CONTENT_SIZE_ERROR;        
     }
-    int64_t width = bytes2uint64_t({ ciffFile.begin() + 20, ciffFile.begin() + 28 });
-    int64_t height = bytes2uint64_t({ ciffFile.begin() + 28, ciffFile.begin() + 36 });
+    uint64_t width = bytes2uint64_t({ ciffFile.begin() + 20, ciffFile.begin() + 28 });
+    uint64_t height = bytes2uint64_t({ ciffFile.begin() + 28, ciffFile.begin() + 36 });
     if(height*width*3 != contentSize){
         std::cout<<"CIFF_CONTENT_SIZE_ERROR width* height*3"<< std::endl;
         return CIFF_CONTENT_SIZE_ERROR;        
@@ -114,8 +114,6 @@ size_t Parser::validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock) {
     if (CAFFHeader[0] != 'C' || CAFFHeader[1] != 'A' || CAFFHeader[2] != 'F' || CAFFHeader[3] != 'F') {
         return CAFF_MAGIC_ERROR;
     }
-    uint64_t headerSize = bytes2uint64_t({ CAFFHeader.begin() + 4, CAFFHeader.begin() + 4 + 8 });
-    uint64_t numAnim = bytes2uint64_t({ CAFFHeader.begin() + 12, CAFFHeader.begin() + 12 + 8 });
 
     return 0;
 }
