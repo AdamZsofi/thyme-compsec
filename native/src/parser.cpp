@@ -102,10 +102,10 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint6
 
 size_t Parser::validateCAFFHeaderBlock(std::vector<char> CAFFHeaderBlock) {
 
+    if (CAFFHeaderBlock.size() != 9 + 4 + 8 + 8) return BLOCK_LENGTH_ERROR;
     if (CAFFHeaderBlock[0] != 0x1) return BLOCK_ID_ERROR;
     uint64_t length = bytes2uint64_t({ CAFFHeaderBlock.begin() + 1, CAFFHeaderBlock.begin() + 1 + 8 });
     if (length != 4 + 8 + 8) return BLOCK_LENGTH_ERROR;
-    if (CAFFHeaderBlock.size() != 9 + 4 + 8 + 8) return BLOCK_LENGTH_ERROR;
     std::vector<char> CAFFHeader = { CAFFHeaderBlock.begin() + 9, CAFFHeaderBlock.end() };
 
     if (CAFFHeader[0] != 'C' || CAFFHeader[1] != 'A' || CAFFHeader[2] != 'F' || CAFFHeader[3] != 'F') {
