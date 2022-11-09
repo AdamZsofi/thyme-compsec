@@ -40,7 +40,10 @@ void Parser::saveMetaData(std::string filename, uint64_t duration, std::string c
 }
 
 size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint64_t duration) {
-
+    if(ciffFile.size()< 36){
+        std::cout << "SHORT" << std::endl;
+        return CAFF_TOO_SHORT;
+    }
     if (ciffFile[0] != 'C' || ciffFile[1] != 'I' || ciffFile[2] != 'F' || ciffFile[3] != 'F') {
         return CIFF_MAGIC_ERROR;
     }
@@ -62,6 +65,10 @@ size_t Parser::parseCiff(std::vector<char> ciffFile, std::string filename, uint6
     if(height*width*3 != contentSize){
         std::cout<<"CIFF_CONTENT_SIZE_ERROR width* height*3"<< std::endl;
         return CIFF_CONTENT_SIZE_ERROR;        
+    }
+    if(ciffFile.size()< headerSize){
+        std::cout << "SHORT" << std::endl;
+        return CAFF_TOO_SHORT;
     }
     std::string cat(ciffFile.begin() + 36, ciffFile.begin() + headerSize);
     if(cat.find("\n") == std::string::npos){
@@ -225,7 +232,7 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename) {
         }        
         std::vector<char> CIFFAnimation = { caffFile.begin() + ciffBlockOffset + 9, caffFile.begin() + ciffBlockOffset + 9 + caffAnimationBlockLength }; //caffFile.begin() should be good as well?
 
-        if(CIFFAnimation.size() < 8){
+        if(CIFFAnimation.size() < 8 || CIFFAnimation.size() < caffAnimationBlockLength){
             std::cout << "short caffFile" << std::endl;
             return CAFF_TOO_SHORT;
         }        
