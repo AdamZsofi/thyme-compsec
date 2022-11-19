@@ -9,7 +9,7 @@ public class CaffFile {
     @Id
     @Column(name = "id")
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Integer id = 0;
+    private Long id = 0L;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
