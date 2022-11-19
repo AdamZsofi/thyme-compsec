@@ -1,6 +1,7 @@
 package hu.bme.crysys.server.server.domain.database;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
 @Table(name = "CaffFile")
@@ -17,4 +18,8 @@ public class CaffFile {
     @Lob
     @Column(name = "data")
     private Byte[] data;
+
+    @OneToMany(mappedBy = "caffFile")
+    private List<CaffComment> comments;
+
 }

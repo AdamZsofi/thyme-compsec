@@ -24,8 +24,5 @@ public class UserData {
     private String password;
 
     @OneToMany(mappedBy = "userData")
-    private List<CaffComment> comments;
-
-    @OneToMany(mappedBy = "userData")
     private List<CaffFile> files;
 }

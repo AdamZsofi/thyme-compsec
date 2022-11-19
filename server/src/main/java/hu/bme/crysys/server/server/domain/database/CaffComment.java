@@ -12,8 +12,8 @@ public class CaffComment {
     private Integer id = 0;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private UserData userData;
+    @JoinColumn(name = "caff_id")
+    private CaffFile caffFile;
 
     @Column(name = "created")
     private LocalDateTime created;
