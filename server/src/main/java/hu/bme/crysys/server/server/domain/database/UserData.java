@@ -26,12 +26,6 @@ public class UserData {
     @OneToMany(mappedBy = "userData")
     private List<CaffComment> comments;
 
-    @OneToMany(mappedBy = "author_of_files", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "userData")
     private List<CaffFile> files;
-
-    public UserData(Integer id, String userName, String password) {
-        this.id = id;
-        this.userName = userName;
-        this.password = password;
-    }
 }
