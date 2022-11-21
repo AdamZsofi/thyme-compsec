@@ -14,11 +14,6 @@ public class CaffService {
     @Autowired
     private CaffCommentRepository caffCommentRepository;
 
-    // TODO dummy
-    new CaffFile();
-    new CaffFile();
-
-
     public static Iterable<CaffFile> getAllProducts() {
         throw new RuntimeException("Not implemented yet");
     }
@@ -28,6 +23,11 @@ public class CaffService {
     }
 
     public static Iterable<CaffComment> getComments(long id) {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    public static boolean deleteCaff(long id) {
+        // delete file from filesystem as well
         throw new RuntimeException("Not implemented yet");
     }
 }

@@ -16,10 +16,9 @@ public class CaffFile {
     private UserData userData;
 
     @Lob
-    @Column(name = "data")
-    private Byte[] data;
+    @Column(name = "path")
+    private String path; // TODO name file with hash: user name, id, etc hashed (and check if file exists)
 
     @OneToMany(mappedBy = "caffFile")
     private List<CaffComment> comments;
-
 }

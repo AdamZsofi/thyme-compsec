@@ -40,4 +40,6 @@ public class CaffController {
     public @NotNull Iterable<CaffComment> getComments(long id) {
         return CaffService.getComments(id);
     }
+
+    // download - we'll need another repository for that to know who can download what
 }
