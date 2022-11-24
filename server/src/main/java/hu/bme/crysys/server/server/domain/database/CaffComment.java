@@ -1,7 +1,7 @@
 package hu.bme.crysys.server.server.domain.database;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import net.minidev.json.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
@@ -18,6 +18,7 @@ public class CaffComment {
     @ManyToOne
     @JoinColumn(name = "caff_id")
     @JsonBackReference
+    @JsonIgnore
     private CaffFile caffFile;
 
     @Column(name = "created")
@@ -51,6 +52,7 @@ public class CaffComment {
         this.id = id;
     }
 
+    @JsonIgnore
     public CaffFile getCaffFile() {
         return caffFile;
     }

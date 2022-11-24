@@ -6,13 +6,14 @@ import hu.bme.crysys.server.server.domain.database.UserData;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
-import org.hsqldb.persist.Log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -40,16 +40,11 @@ public class ApiController {
     @Autowired
     private UserDataRepository userDataRepository;
 
-    private final JdbcTemplate jdbcTemplate;
-
-    public ApiController(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
-
     /*
     Main page
      */
-    @GetMapping(value = "/caff", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/caff",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<List<CaffFile>> getAllCaffFile() {
         logger.info("getAllCaffFile");
         // TODO what exactly to return?
@@ -59,7 +54,8 @@ public class ApiController {
     /*
     Individual CAFF files
      */
-    @GetMapping(value = "/caff/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @GetMapping(value = "/caff/{id}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CaffFile> getCaffFileById(@PathVariable Integer id) {
         logger.info("getCaffFileById " + id.toString());
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
@@ -86,15 +82,13 @@ public class ApiController {
     Downloading
      */
     // download - we'll need another repository for that to know who can download what
-    @GetMapping(value = "/buy/{id}")
+    @GetMapping(value = "/buy/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getCaffFileAccessRights(@PathVariable Integer id,
                                                           @RequestBody @Validated UserData userData) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            // TODO implement acceptance
-            String username = userData.getUserName();
-            String password = userData.getPassword();
-            if (true) {
+            if (userData.getDownloadableFiles().contains(caffFile.get())) {
                 return new ResponseEntity<>("Accepted", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Declined", HttpStatus.OK);
@@ -107,15 +101,17 @@ public class ApiController {
     /*
     Uploading
      */
-    @RequestMapping(value = "/upload")
+    @RequestMapping(value = "/upload",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file,
                                                    @RequestParam("user_id") Integer user_id) {
         Optional<UserData> userData = userDataRepository.findById(user_id);
         if (userData.isPresent()) {
             try {
                 // TODO where to save file?
-                String toBeHashed = Arrays.toString(file.getBytes()) + userData.get().getUserName() + userData.get().getId();
-
+                String toBeHashed = Arrays.toString(file.getBytes())
+                        + userData.get().getUserName()
+                        + userData.get().getId();
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
                 BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
                 StringBuilder hexString = new StringBuilder(number.toString(16));
@@ -143,7 +139,8 @@ public class ApiController {
     /*
     Comment
      */
-    @RequestMapping(value = "/comment")
+    @RequestMapping(value = "/comment",
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CaffComment> addCommentToCaffFile(@RequestParam("user_id") Integer user_id,
                                                          @RequestParam("file_id") Integer file_id,
                                                          @RequestParam("comment") String comment) {
@@ -164,7 +161,9 @@ public class ApiController {
     /*
     Admin
      */
-    @RequestMapping(value = "/delete/file/{id}")
+    @RequestMapping(value = "/delete/file/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<CaffFile> deleteCaffFile(@PathVariable("id") Integer id,
                                                    @RequestBody @Validated UserData userData) {
         Integer userDataId = userData.getId();
@@ -191,7 +190,9 @@ public class ApiController {
         }
     }
 
-    @RequestMapping(value = "/delete/user/{id}")
+    @RequestMapping(value = "/delete/user/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserData> deleteUserData(@PathVariable("id") Integer id,
                                                    @RequestBody @Validated UserData userData) {
         Integer userDataId = userData.getId();
@@ -201,7 +202,7 @@ public class ApiController {
                 if (dataBaseUserData.get().equals(userData) && dataBaseUserData.get().getAdmin()) {
                     Optional<UserData> toBeDeletedUser = userDataRepository.findById(id);
                     if (toBeDeletedUser.isPresent() && !toBeDeletedUser.get().equals(userData)) {
-                        for (var caffFile : toBeDeletedUser.get().getFiles()) {
+                        for (var caffFile : toBeDeletedUser.get().getOwnFiles()) {
                             caffCommentRepository.deleteAll(caffFile.getComments());
                             caffFileRepository.delete(caffFile);
                         }
@@ -221,7 +222,9 @@ public class ApiController {
         }
     }
 
-    @RequestMapping(value = "/modify/user/{id}")
+    @RequestMapping(value = "/modify/user/{id}",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserData> modifyUserName(@PathVariable("id") Integer id,
                                                    @RequestParam("username") String username,
                                                    @RequestBody @Validated UserData userData) {
@@ -234,7 +237,8 @@ public class ApiController {
                     if (optionalUserData.isPresent()) {
                         UserData toBeModifiedUser = optionalUserData.get();
                         toBeModifiedUser.setUserName(username);
-                        return new ResponseEntity<>(userDataRepository.saveAndFlush(toBeModifiedUser), HttpStatus.OK);  // fallbacks to merge
+                        // fallback to merge
+                        return new ResponseEntity<>(userDataRepository.saveAndFlush(toBeModifiedUser), HttpStatus.OK);
                     } else {
                         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                     }
@@ -257,4 +261,48 @@ public class ApiController {
     /*
     Login & register
      */
+    @GetMapping(value = "/user/login",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> loginUser(@RequestBody @Validated UserData userData) {
+        String password = userData.getPassword();
+        String username = userData.getUserName();
+        if (password != null && username != null) {
+            UserData existingUserData = userDataRepository.findUserDataByUsername(username);
+            if (existingUserData.getPassword().equals(userData.getPassword())){
+                return new ResponseEntity<>("ok", HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping(value = "/user/register",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserData> registerUser(@RequestBody @Validated UserData userData) {
+        String password = userData.getPassword();
+        String username = userData.getUserName();
+        if (password != null && username != null) {
+            UserData existingUserData = userDataRepository.findUserDataByUsername(username);
+            if (existingUserData == null) {
+                return new ResponseEntity<>(userDataRepository.saveAndFlush(userData), HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /*
+    catch all errors
+     */
+    @ExceptionHandler
+    public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        logger.debug(exception.getMessage());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
 }

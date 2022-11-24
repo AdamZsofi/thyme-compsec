@@ -1,13 +1,13 @@
 package hu.bme.crysys.server.server.domain.database;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Table(name = "UserData")
@@ -23,15 +23,23 @@ public class UserData {
 
     @Column(name = "password")
     @NotNull
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @Column(name = "isAdmin")
     @NotNull
+    @JsonIgnore
     private Boolean isAdmin;
 
     @OneToMany(mappedBy = "userData")
     @JsonManagedReference
-    private List<CaffFile> files;
+    @JsonIgnore
+    private List<CaffFile> ownFiles;
+
+    @OneToMany(mappedBy = "userData")
+    @JsonManagedReference
+    @JsonIgnore
+    private List<CaffFile> downloadableFiles;
 
     @PrePersist
     private void prePersist() {
@@ -56,6 +64,7 @@ public class UserData {
         this.userName = userName;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }
@@ -64,6 +73,7 @@ public class UserData {
         this.password = password;
     }
 
+    @JsonIgnore
     public Boolean getAdmin() {
         return isAdmin;
     }
@@ -72,12 +82,22 @@ public class UserData {
         isAdmin = admin;
     }
 
-    public List<CaffFile> getFiles() {
-        return files;
+    @JsonIgnore
+    public List<CaffFile> getOwnFiles() {
+        return ownFiles;
     }
 
-    public void setFiles(List<CaffFile> files) {
-        this.files = files;
+    public void setOwnFiles(List<CaffFile> ownFiles) {
+        this.ownFiles = ownFiles;
+    }
+
+    @JsonIgnore
+    public List<CaffFile> getDownloadableFiles() {
+        return downloadableFiles;
+    }
+
+    public void setDownloadableFiles(List<CaffFile> downloadableFiles) {
+        this.downloadableFiles = downloadableFiles;
     }
 
     @Override
@@ -98,7 +118,7 @@ public class UserData {
         result = 31 * result + (userName != null ? userName.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
         result = 31 * result + (isAdmin != null ? isAdmin.hashCode() : 0);
-        result = 31 * result + (files != null ? files.hashCode() : 0);
+        result = 31 * result + (ownFiles != null ? ownFiles.hashCode() : 0);
         return result;
     }
 
@@ -109,7 +129,7 @@ public class UserData {
                 ", userName='" + userName + '\'' +
                 ", password='" + password + '\'' +
                 ", isAdmin=" + isAdmin +
-                ", files=" + files +
+                ", files=" + ownFiles +
                 '}';
     }
 }

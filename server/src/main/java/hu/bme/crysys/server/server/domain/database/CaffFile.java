@@ -19,6 +19,7 @@ public class CaffFile {
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
+    @JsonIgnore
     private UserData userData;
 
     @Lob
@@ -27,6 +28,7 @@ public class CaffFile {
     private String path;
 
     @OneToMany(mappedBy = "caffFile")
+    @JsonIgnore
     @JsonManagedReference
     private List<CaffComment> comments;
 
@@ -45,6 +47,7 @@ public class CaffFile {
         this.id = id;
     }
 
+    @JsonIgnore
     public UserData getUserData() {
         return userData;
     }
@@ -53,6 +56,7 @@ public class CaffFile {
         this.userData = userData;
     }
 
+    @JsonIgnore
     public String getPath() {
         return path;
     }
