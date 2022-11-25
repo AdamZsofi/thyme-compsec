@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "bootstrap": "^5.2.2",
-    "ng": "^0.0.0",
-    "node.js": "^0.0.1-security"
-  }
-}
