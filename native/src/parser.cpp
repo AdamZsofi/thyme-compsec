@@ -31,11 +31,18 @@ void Parser::saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byt
 
 void Parser::saveMetaData(std::string filename, uint64_t duration, std::string caption, std::vector<std::string> tags){
     std::ofstream fout(filename);
-    fout << duration << std::endl;
-    fout << caption << std::endl;
+    fout << "{" << std::endl;
+    fout << " \"duration\" : " << duration << "," << std::endl;
+    fout << " \"caption\" : \"" <<  caption << "\"," << std::endl;    
+    fout << " \"tags\" : [" << std::endl;
+    int i = 1; 
     for(std::string tag : tags){
-        fout << tag << std::endl;
+        fout << "\"" << tag << "\"";
+        if(i++ != tags.size()) fout << ",";
     }
+    fout << "]" << std::endl;
+    
+    fout << "}" << std::endl;
     fout.close();
 }
 
