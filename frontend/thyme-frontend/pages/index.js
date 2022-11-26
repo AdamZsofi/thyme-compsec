@@ -1,5 +1,6 @@
 import React from 'react';
 import ThymeHeader from '../components/header.js';
+import {CaffFile} from '../components/caff-data.js';
 
 function Square(props) {
   return (
@@ -129,14 +130,6 @@ function CaffCard(props) {
       </a>
     </div>
   )
-}
-
-class CaffFile {
-  constructor(id, caffName, userName) {
-    this.id = id;
-    this.caffName = caffName;
-    this.userName = userName;
-  }
 }
 
 class CaffList extends React.Component {

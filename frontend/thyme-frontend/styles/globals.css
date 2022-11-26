@@ -7,6 +7,15 @@ ol, ul {
   padding-left: 30px;
 }
 
+button {
+  padding: 6px;
+  background: rgb(239, 239, 239);
+  font-size: 17px;
+  color: black;
+  border: none;
+  cursor: pointer;
+}
+
 .card {
   /* Add shadows to create the "card" effect */
   box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
@@ -36,7 +45,7 @@ ol, ul {
   gap: 20px 20px;
 }
 
-html {background-color: rgb(235, 243, 241)}
+html {background-color: rgb(247, 255, 253)}
 
 /******** HEADER *******/
 
@@ -107,18 +116,30 @@ html {background-color: rgb(235, 243, 241)}
 
 .header button {
   float: right;
-  padding: 6px;
   margin-top: 8px;
   margin-right: 10px;
-  background: rgb(239, 239, 239);
-  font-size: 17px;
-  color: black;
-  border: none;
-  cursor: pointer;
 }
 
-.header button:hover {
+button:hover {
   background: rgb(192, 192, 192);
 }
 
 /******** HEADER END *******/
+
+/******** CAFF INFO PAGE *******/
+.caffInfo .caffImage {
+  max-height: 450px;
+  height: auto;
+}
+
+.caff-page-row .column {
+  float: left;
+  width: 50%;
+}
+
+/* Clear floats after the columns */
+.caff-page-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
