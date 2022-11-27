@@ -19,6 +19,10 @@ public class ParserController {
 
     public static CaffParseResult parse(String CAFFFileName, String outputPath){
 
+        File directory = new File(outputPath);
+        if (! directory.exists()){
+            directory.mkdirs();//can create the entire directory path including parents
+        }
 
         //maybe current wd + outputpath or something else?
         final File outputFolder = new File(outputPath);

@@ -40,7 +40,7 @@ void Parser::saveMetaData(std::string filename, uint64_t duration, std::string c
         fout << "\"" << tag << "\"";
         if(i++ != tags.size()) fout << ",";
     }
-    fout << "]" << std::endl;
+    fout << std::endl << "]" << std::endl;
     
     fout << "}" << std::endl;
     fout.close();
@@ -253,7 +253,7 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename, std::
         std::ostringstream ss;
         ss << std::setw(3) << std::setfill('0') << ciffNum;
         std::string oNum(ss.str());
-        std::string FileName = filename  + "_"+ oNum + ".bmp";
+        std::string FileName = outFileName  + "_"+ oNum + ".bmp";
         std::string OutFileName = outFileName + "_" + oNum + ".json";
         parseCiff(cifFile, FileName, OutFileName, duration);
         ciffBlockOffset += caffAnimationBlockLength + 9;
