@@ -254,7 +254,7 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename, std::
         ss << std::setw(3) << std::setfill('0') << ciffNum;
         std::string oNum(ss.str());
         std::string FileName = filename  + "_"+ oNum + ".bmp";
-        std::string OutFileName = outFileName + "_" + oNum + ".txt";
+        std::string OutFileName = outFileName + "_" + oNum + ".json";
         parseCiff(cifFile, FileName, OutFileName, duration);
         ciffBlockOffset += caffAnimationBlockLength + 9;
     }
