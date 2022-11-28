@@ -7,7 +7,6 @@ function CaffCard(props) {
   return (
     <div className="card" onClick={() => {}}>
       <Link href={"/caff/"+props.caffId}>
-        <h2>Id (Temporary): {props.caffId}</h2>
         <h2>Name: {props.caffName}</h2>
         <h3>Uploaded by: {props.userName}</h3>
       </Link>
@@ -44,7 +43,7 @@ class CaffList extends React.Component {
         <div className="grid-item" key={file.id}>
           <CaffCard 
             caffId={file.id}
-            caffName={"placeholder"}//{file.caffName}
+            caffName={file.filename}
             userName={file.username}
           />
         </div>

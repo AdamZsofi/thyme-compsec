@@ -79,8 +79,7 @@ class CaffInfo extends React.Component {
 
     return (
       <div className="caffInfo">        
-        <h1>Id (Temporary!): {this.state.basicCaff.id}</h1>
-        <h1>{this.props.caffName}</h1>
+        <h1>{this.state.basicCaff.filename}</h1>
         <h2>Added by {this.state.basicCaff.username}</h2>
         <p><b>Tags:</b> {this.props.tags.join(", ")}</p>
         <img className="caffImage" src={this.props.previewUrl} alt="preview of caff"/>
@@ -160,7 +159,6 @@ export default withRouter(class CaffPage extends React.Component {
         <div className="caff-page-row">
           <div className="column">
             <CaffInfo 
-              caffName={caffFile.caffName}
               previewUrl={caffFile.previewUrl}
               tags={caffFile.tags}
               caffId={id}

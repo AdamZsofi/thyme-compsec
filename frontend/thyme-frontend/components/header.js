@@ -23,6 +23,7 @@ function ThymeHeader(props) {
       </Link>
       <div className="header-right">
         <SearchBar />
+        <button>Logout</button>
       </div>
     </div>
   );

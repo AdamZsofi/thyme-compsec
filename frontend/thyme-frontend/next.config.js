@@ -23,6 +23,10 @@ const nextConfig = {
       source: "/api/caff/comment/:path",
       destination: "http://localhost:8080/api/caff/comment/:path"
     },
+    {
+      source: "/ami_logged_in",
+      destination: "http://localhost:8080/ami_logged_in"
+    },
   ]
 }
 
