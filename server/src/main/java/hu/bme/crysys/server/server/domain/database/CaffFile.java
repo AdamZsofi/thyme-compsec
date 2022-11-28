@@ -37,10 +37,10 @@ public class CaffFile {
 
     public CaffFile() {}
 
-    public CaffFile(String path, String fileName, UserData userData) {
-        this.path = path;
+    public CaffFile(String fileName, UserData userData) {
         this.userData = userData;
         this.fileName = fileName;
+        this.path = "/caffs" + id;
     }
 
     public Integer getId() {
