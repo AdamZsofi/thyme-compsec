@@ -82,7 +82,7 @@ public class CaffApiController {
         }
     }
 
-    @GetMapping(value = "/caff/pic/{id}")
+    @GetMapping(value = "/caff/preview/{id}")
     public ResponseEntity<MultipartFile> getCaffFilePicById(@PathVariable Integer id) {
         logger.info("getCaffFilePicById " + id.toString());
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
@@ -96,17 +96,41 @@ public class CaffApiController {
         }
     }
 
+    @GetMapping(value = "/caff/comment/{id}")
+    public ResponseEntity<String> getCaffFileCommentById(@PathVariable Integer id) {
+        logger.info("getCaffFileCommentById " + id.toString());
+        Optional<CaffFile> caffFile = caffFileRepository.findById(id);
+        if (caffFile.isPresent()) {
+
+            List<JSONObject> comments = new ArrayList<>();
+            for (var comment : caffFile.get().getComments()) {
+                JSONObject innerJson = new JSONObject();
+                innerJson.put("id", comment.getId());
+                innerJson.put("author", comment.getAuthor());
+                innerJson.put("content", comment.getContent());
+                comments.add(innerJson);
+            }
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("comments", comments);
+
+            logger.debug(jsonObject.toString());
+            return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
     /*
     Downloading
      */
-    // download - we'll need another repository for that to know who can download what
-    @GetMapping(value = "/buy/{id}",
+    @GetMapping(value = "/download/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getCaffFileAccessRights(@PathVariable Integer id,
                                                           @RequestBody @Validated UserData userData) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             if (userData.getDownloadableFiles().contains(caffFile.get())) {
+                // TODO need to return the actual file
                 return new ResponseEntity<>("Accepted", HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("Declined", HttpStatus.OK);

@@ -21,20 +21,12 @@ public class CaffComment {
     @JsonIgnore
     private CaffFile caffFile;
 
-    @Column(name = "created")
-    private LocalDateTime created;
-
     @Column(name = "author")
     private String author;
 
     @Lob
     @Column(name = "content")
     private String content;
-
-    @PrePersist
-    private void prePersist() {
-        if (created == null) created = LocalDateTime.now();
-    }
 
     public CaffComment() {}
 
@@ -59,14 +51,6 @@ public class CaffComment {
 
     public void setCaffFile(CaffFile caffFile) {
         this.caffFile = caffFile;
-    }
-
-    public LocalDateTime getCreated() {
-        return created;
-    }
-
-    public void setCreated(LocalDateTime created) {
-        this.created = created;
     }
 
     public String getAuthor() {
@@ -94,7 +78,6 @@ public class CaffComment {
 
         if (!Objects.equals(id, that.id)) return false;
         if (!Objects.equals(caffFile, that.caffFile)) return false;
-        if (!Objects.equals(created, that.created)) return false;
         if (!Objects.equals(author, that.author)) return false;
         return Objects.equals(content, that.content);
     }
@@ -103,7 +86,6 @@ public class CaffComment {
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
         result = 31 * result + (caffFile != null ? caffFile.hashCode() : 0);
-        result = 31 * result + (created != null ? created.hashCode() : 0);
         result = 31 * result + (author != null ? author.hashCode() : 0);
         result = 31 * result + (content != null ? content.hashCode() : 0);
         return result;
