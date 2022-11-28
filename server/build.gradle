@@ -12,21 +12,18 @@ repositories {
 }
 
 dependencies {
-	//implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
-	//implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
-	//implementation 'org.springframework.boot:spring-data-rest-hal-browser'
 	implementation 'org.springframework.boot:spring-boot-starter-hateoas'
 	implementation 'org.springframework.boot:spring-boot-devtools'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.hsqldb:hsqldb'
 	implementation 'javax.xml.bind:jaxb-api'
-	implementation 'com.google.guava:guava:30.1-jre'
-	//implementation 'org.javassist:javassist'
+	implementation 'com.google.guava:guava:31.1-jre'
+	implementation 'org.json:json:20220924'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
