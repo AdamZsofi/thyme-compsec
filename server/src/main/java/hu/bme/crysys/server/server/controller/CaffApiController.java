@@ -6,6 +6,7 @@ import hu.bme.crysys.server.server.domain.database.UserData;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -42,10 +44,23 @@ public class CaffApiController {
      */
     @GetMapping(value = "/caff",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<CaffFile>> getAllCaffFile() {
+    public ResponseEntity<String> getAllCaffFile() {
         logger.info("getAllCaffFile");
-        // TODO what exactly to return?
-        return new ResponseEntity<>(caffFileRepository.findAll(), HttpStatus.OK);
+
+        List<JSONObject> caffs = new ArrayList<>();
+        for (var caffFile : caffFileRepository.findAll()) {
+            JSONObject innerJson = new JSONObject();
+            innerJson.put("id", caffFile.getId());
+            innerJson.put("filename", caffFile.getFileName());
+            innerJson.put("username", caffFile.getUserData().getUserName());
+            caffs.add(innerJson);
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("caffs", caffs);
+
+        logger.debug(jsonObject.toString());
+
+        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
     }
 
     /*
@@ -53,12 +68,18 @@ public class CaffApiController {
      */
     @GetMapping(value = "/caff/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CaffFile> getCaffFileById(@PathVariable Integer id) {
+    public ResponseEntity<String> getCaffFileById(@PathVariable Integer id) {
         logger.info("getCaffFileById " + id.toString());
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
-        return caffFile
-                .map(file -> new ResponseEntity<>(file, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        if (caffFile.isPresent()) {
+            JSONObject innerJson = new JSONObject();
+            innerJson.put("id", caffFile.get().getId());
+            innerJson.put("filename", caffFile.get().getFileName());
+            innerJson.put("username", caffFile.get().getUserData().getUserName());
+            return new ResponseEntity<>(innerJson.toString(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @GetMapping(value = "/caff/pic/{id}")
@@ -120,7 +141,7 @@ public class CaffApiController {
                     return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
                 } else {
                     Files.createFile(path);
-                    CaffFile caffFile = new CaffFile(path.toAbsolutePath().toString(), userData.get());
+                    CaffFile caffFile = new CaffFile(path.toAbsolutePath().toString(), file.getName(), userData.get());
                     return new ResponseEntity<>(caffFileRepository.saveAndFlush(caffFile), HttpStatus.OK);
                 }
             } catch (IOException ioException) {

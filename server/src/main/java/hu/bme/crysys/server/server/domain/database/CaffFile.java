@@ -16,6 +16,9 @@ public class CaffFile {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
+    @Column(name = "file_name")
+    private String fileName;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     @JsonBackReference
@@ -34,9 +37,10 @@ public class CaffFile {
 
     public CaffFile() {}
 
-    public CaffFile(String path, UserData userData) {
+    public CaffFile(String path, String fileName, UserData userData) {
         this.path = path;
         this.userData = userData;
+        this.fileName = fileName;
     }
 
     public Integer getId() {
@@ -74,6 +78,14 @@ public class CaffFile {
         this.comments = comments;
     }
 
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -82,6 +94,7 @@ public class CaffFile {
         CaffFile caffFile = (CaffFile) o;
 
         if (!Objects.equals(id, caffFile.id)) return false;
+        if (!Objects.equals(fileName, caffFile.fileName)) return false;
         if (!Objects.equals(userData, caffFile.userData)) return false;
         if (!Objects.equals(path, caffFile.path)) return false;
         return Objects.equals(comments, caffFile.comments);
@@ -90,6 +103,7 @@ public class CaffFile {
     @Override
     public int hashCode() {
         int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
         result = 31 * result + (path != null ? path.hashCode() : 0);
         result = 31 * result + (comments != null ? comments.hashCode() : 0);
