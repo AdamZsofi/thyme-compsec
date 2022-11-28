@@ -41,7 +41,6 @@ public class ApplicationSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                //.csrf().disable()
                 .csrf().ignoringAntMatchers("/login")
                 .and().authorizeRequests()
                 .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
@@ -65,12 +64,6 @@ public class ApplicationSecurityConfig {
                 .and().exceptionHandling()
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .and().build();
-        /*http
-                .antMatchers("/login/**")
-                .anonymous()
-                .and()
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS);*/
     }
 
     @Bean

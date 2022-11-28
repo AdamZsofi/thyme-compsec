@@ -19,14 +19,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -125,15 +124,20 @@ public class CaffApiController {
      */
     @GetMapping(value = "/download/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> getCaffFileAccessRights(@PathVariable Integer id,
+    public ResponseEntity<String> downloadCaffFile(@PathVariable Integer id,
                                                           @RequestBody @Validated UserData userData) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            if (userData.getDownloadableFiles().contains(caffFile.get())) {
-                // TODO need to return the actual file
-                return new ResponseEntity<>("Accepted", HttpStatus.OK);
+            if (true) { // TODO userData.getDownloadableFiles().contains(caffFile.get())
+                try {
+                    String path = String.valueOf(Paths.get(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+                    String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
+                    return new ResponseEntity<>(file, HttpStatus.OK);
+                } catch (IOException | URISyntaxException e) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
             } else {
-                return new ResponseEntity<>("Declined", HttpStatus.OK);
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -150,7 +154,6 @@ public class CaffApiController {
         Optional<UserData> userData = userDataRepository.findById(user_id);
         if (userData.isPresent()) {
             try {
-                // TODO where to save file?
                 String toBeHashed = Arrays.toString(file.getBytes())
                         + userData.get().getUserName()
                         + userData.get().getId();
@@ -160,14 +163,10 @@ public class CaffApiController {
                 while (hexString.length() < 64) { hexString.insert(0, '0'); }
                 String hash = hexString.toString();
 
-                Path path = Path.of(hash);
-                if (Files.exists(path)) {
-                    return new ResponseEntity<>(HttpStatus.NOT_MODIFIED);
-                } else {
-                    Files.createFile(path);
-                    CaffFile caffFile = new CaffFile(path.toAbsolutePath().toString(), file.getName(), userData.get());
-                    return new ResponseEntity<>(caffFileRepository.saveAndFlush(caffFile), HttpStatus.OK);
-                }
+                CaffFile caffFile = new CaffFile(file.getName(), userData.get());
+                caffFile = caffFileRepository.saveAndFlush(caffFile);
+                Files.createFile(Path.of(caffFile.getPath()));
+                return new ResponseEntity<>(caffFile, HttpStatus.OK);
             } catch (IOException ioException) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             } catch (NoSuchAlgorithmException e) {
