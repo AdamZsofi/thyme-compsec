@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 function SearchBar(props) {
     return (
@@ -14,10 +15,10 @@ function SearchBar(props) {
   function ThymeHeader(props) {
     return (
       <div className="header">
-        <a href="/" className="logo">
+        <Link href="/" className="logo">
           <img className="logoImg" src="thyme.png" alt="Thyme Shop Logo"/>
           <span className="shopName">Thyme Shop</span>
-        </a>
+        </Link>
         <div className="header-right">
           <SearchBar />
         </div>

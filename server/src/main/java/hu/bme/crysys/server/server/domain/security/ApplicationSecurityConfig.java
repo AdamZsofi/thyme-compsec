@@ -3,6 +3,7 @@ package hu.bme.crysys.server.server.domain.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -14,6 +15,10 @@ import org.springframework.security.web.SecurityFilterChain;
 
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserPermission.USER_DATA_WRITE;
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.ADMIN;
@@ -37,12 +42,17 @@ public class ApplicationSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 //.csrf().disable()
-                .authorizeRequests()
+                .csrf().ignoringAntMatchers("/login")
+                .and().authorizeRequests()
                 .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
                 .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
                 .anyRequest()
                 .authenticated()
                 .and().formLogin()
+                    .loginPage("/login")
+                    .loginProcessingUrl("/login")
+                    .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+                    .failureHandler(new SimpleUrlAuthenticationFailureHandler())
                     .usernameParameter("username")
                     .passwordParameter("password")
                 .and().rememberMe()
@@ -52,6 +62,8 @@ public class ApplicationSecurityConfig {
                     .clearAuthentication(true)
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
+                .and().exceptionHandling()
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .and().build();
         /*http
                 .antMatchers("/login/**")
