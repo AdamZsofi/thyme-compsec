@@ -4,7 +4,11 @@ import {CaffFile} from '../../components/caff-data.js';
 import { withRouter } from 'next/router'
 import Link from 'next/link.js';
 
+// TODO put rest api calls into separate file in components?
 async function getCaff(id) {
+  if(id === undefined) {
+    return undefined;
+  }
   const res = await fetch(`/api/caff/`+id, {
     method: "GET",
   })
@@ -17,23 +21,50 @@ async function getCaff(id) {
   }
 }
 
+async function getComments(id) {
+  if(id === undefined) {
+    console.log("undefined");
+    return [];
+  }
+
+  const res = await fetch(`/api/caff/comment/`+id, {
+    method: "GET",
+  })
+  if (res.ok) {
+    const json = (await res.json());
+    var comments = [];
+    for(var i in json.comments) {
+      comments.push(json.comments[i]);
+    }
+    return comments;
+  } else {
+    // TODO this works?
+    return [];
+  }
+}
+
+////////////////////////////////////////////////////////////////////
+
 class CaffInfo extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { basicCaff: {} }
+    this.state = { basicCaff: {}}
+  }
+
+  async fetchState() {
+    const caff = await getCaff(this.props.caffId);
+    this.setState({basicCaff: caff});
   }
 
   async componentDidUpdate(prevProps) {
     // Typical usage (don't forget to compare props):
     if (this.props.caffId !== prevProps.caffId) {
-        const caff = await getCaff(this.props.caffId);
-        this.setState({basicCaff: caff});
+      this.fetchState();
     }
   }
 
   async componentDidMount() {
-    const caff = await getCaff(this.props.caffId);
-    this.setState({basicCaff: caff});
+    this.fetchState();
   }
 
   render() {
@@ -50,7 +81,7 @@ class CaffInfo extends React.Component {
       <div className="caffInfo">        
         <h1>Id (Temporary!): {this.state.basicCaff.id}</h1>
         <h1>{this.props.caffName}</h1>
-        <h2>Added by {this.props.userName}</h2>
+        <h2>Added by {this.state.basicCaff.username}</h2>
         <p><b>Tags:</b> {this.props.tags.join(", ")}</p>
         <img className="caffImage" src={this.props.previewUrl} alt="preview of caff"/>
         <br />
@@ -70,16 +101,51 @@ function Comment(props) {
   );
 }
 
-function CommentList(props) {
-  return (
-    <div>
-      <h1>Comments about this CAFF:</h1>
-      <Comment 
-      userName={"user2"}
-      comment={"Nice Cat!"}
-      />
-    </div>
-  );
+class CommentList extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { commentList: []}
+  }
+
+  async fetchState() {
+    const commentList = await getComments(this.props.caffId);
+    this.setState({commentList: commentList});
+  }
+
+  async componentDidUpdate(prevProps) {
+    // Typical usage (don't forget to compare props):
+    if (this.props.caffId !== prevProps.caffId) {
+      this.fetchState();
+    }
+  }
+
+  async componentDidMount() {
+    this.fetchState();
+  }
+
+  render() {
+    const comments = this.state.commentList.map((c) => {
+      return(
+        <div key={c.id}>
+          <Comment 
+            userName={c.author}
+            comment={c.content}
+          />
+        </div>
+      );
+    });
+
+    return (
+      <div>
+        <h1>Comments about this CAFF:</h1>
+        {comments}
+      </div>
+    );
+  }
+}
+
+class CommentBox extends React.Component {
+  // TODO
 }
 
 export default withRouter(class CaffPage extends React.Component {
@@ -95,14 +161,15 @@ export default withRouter(class CaffPage extends React.Component {
           <div className="column">
             <CaffInfo 
               caffName={caffFile.caffName}
-              userName={caffFile.userName}
               previewUrl={caffFile.previewUrl}
               tags={caffFile.tags}
               caffId={id}
             />
           </div>
           <div className="column">
-            <CommentList />
+            <CommentList 
+              caffId={id}
+            />
           </div>
         </div>
       </div>

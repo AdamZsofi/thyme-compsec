@@ -22,8 +22,8 @@ async function getCaffs() {
   if (res.ok) {
     const json = (await res.json());
     var caffArr = [];
-    for(var i in json) {
-      caffArr.push(json[i]);
+    for(var i in json.caffs) {
+      caffArr.push(json.caffs[i]);
     }
     return caffArr;
   } else {
@@ -45,7 +45,7 @@ class CaffList extends React.Component {
           <CaffCard 
             caffId={file.id}
             caffName={"placeholder"}//{file.caffName}
-            userName={"placeholder"}//{file.userName}
+            userName={file.username}
           />
         </div>
       )

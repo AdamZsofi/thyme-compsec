@@ -19,6 +19,10 @@ const nextConfig = {
       source: "/api/caff/:path",
       destination: "http://localhost:8080/api/caff/:path"
     },
+    {
+      source: "/api/caff/comment/:path",
+      destination: "http://localhost:8080/api/caff/comment/:path"
+    },
   ]
 }
 
