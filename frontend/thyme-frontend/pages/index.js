@@ -1,12 +1,12 @@
 import React from 'react';
 import ThymeHeader from '../components/header.js';
 import {CaffFile} from '../components/caff-data.js';
-import Link from 'next/link';
+import Link from 'next/link.js';
 
 function CaffCard(props) {
   return (
     <div className="card" onClick={() => {}}>
-      <Link href="/caff">
+      <Link href={"/caff/"+props.caffId}>
         <h2>Id (Temporary): {props.caffId}</h2>
         <h2>Name: {props.caffName}</h2>
         <h3>Uploaded by: {props.userName}</h3>
@@ -27,7 +27,7 @@ async function getCaffs() {
     }
     return caffArr;
   } else {
-    // TODO
+    // TODO this works?
     return [];
   }
 }
@@ -35,20 +35,11 @@ async function getCaffs() {
 class CaffList extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { cards: [] }
+    this.state = { caffArr: [] }
   }
 
   render() {
-    return (
-      <div className="grid-container">
-        {this.state.cards}
-      </div>
-    );
-  }
-
-  async componentDidMount() {
-    const caffArr = await getCaffs();
-    const cards = caffArr.map((file) => {
+    const cards = this.state.caffArr.map((file) => {
       return (
         <div className="grid-item" key={file.id}>
           <CaffCard 
@@ -59,8 +50,17 @@ class CaffList extends React.Component {
         </div>
       )
     });
-    this.setState({cards: cards});
 
+    return (
+      <div className="grid-container">
+        {cards}
+      </div>
+    );
+  }
+
+  async componentDidMount() {
+    const caffArr = await getCaffs();
+    this.setState({caffArr: caffArr});
   }
 }
 
