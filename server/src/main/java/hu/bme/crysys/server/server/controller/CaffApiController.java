@@ -50,7 +50,7 @@ public class CaffApiController {
         for (var caffFile : caffFileRepository.findAll()) {
             JSONObject innerJson = new JSONObject();
             innerJson.put("id", caffFile.getId());
-            innerJson.put("filename", caffFile.getFileName());
+            innerJson.put("filename", caffFile.getPublicFileName());
             innerJson.put("username", caffFile.getUserData().getUserName());
             caffs.add(innerJson);
         }
@@ -73,7 +73,7 @@ public class CaffApiController {
         if (caffFile.isPresent()) {
             JSONObject innerJson = new JSONObject();
             innerJson.put("id", caffFile.get().getId());
-            innerJson.put("filename", caffFile.get().getFileName());
+            innerJson.put("filename", caffFile.get().getPublicFileName());
             innerJson.put("username", caffFile.get().getUserData().getUserName());
             return new ResponseEntity<>(innerJson.toString(), HttpStatus.OK);
         } else {
@@ -163,7 +163,7 @@ public class CaffApiController {
                 while (hexString.length() < 64) { hexString.insert(0, '0'); }
                 String hash = hexString.toString();
 
-                CaffFile caffFile = new CaffFile(file.getName(), userData.get());
+                CaffFile caffFile = new CaffFile(file.getName(), userData.get(), hash);
                 caffFile = caffFileRepository.saveAndFlush(caffFile);
                 Files.createFile(Path.of(caffFile.getPath()));
                 return new ResponseEntity<>(caffFile, HttpStatus.OK);
@@ -191,50 +191,6 @@ public class CaffApiController {
             if (caffFile.isPresent()) {
                 CaffComment caffComment = new CaffComment(caffFile.get(), userData.get().getUserName(), comment);
                 return new ResponseEntity<>(caffCommentRepository.saveAndFlush(caffComment), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    /*
-    Session
-     */
-    // TODO
-
-    /*
-    Login & register
-     */
-    @GetMapping(value = "/user/login",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> loginUser(@RequestBody @Validated UserData userData) {
-        String password = userData.getPassword();
-        String username = userData.getUserName();
-        if (password != null && username != null) {
-            UserData existingUserData = userDataRepository.findUserDataByUsername(username);
-            if (existingUserData.getPassword().equals(userData.getPassword())){
-                return new ResponseEntity<>("ok", HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
-    @GetMapping(value = "/user/register",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserData> registerUser(@RequestBody @Validated UserData userData) {
-        String password = userData.getPassword();
-        String username = userData.getUserName();
-        if (password != null && username != null) {
-            UserData existingUserData = userDataRepository.findUserDataByUsername(username);
-            if (existingUserData == null) {
-                return new ResponseEntity<>(userDataRepository.saveAndFlush(userData), HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }

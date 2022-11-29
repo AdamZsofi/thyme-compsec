@@ -31,6 +31,8 @@ import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.US
         jsr250Enabled = true)
 public class ApplicationSecurityConfig {
 
+    private final boolean QUICK_DEBUG = false;
+
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -40,30 +42,49 @@ public class ApplicationSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http
-                .csrf().ignoringAntMatchers("/login")
-                .and().authorizeRequests()
-                .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
-                .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
-                .anyRequest()
-                .authenticated()
-                .and().formLogin()
-                    .loginPage("/login")
-                    .loginProcessingUrl("/login")
-                    .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
-                    .failureHandler(new SimpleUrlAuthenticationFailureHandler())
-                    .usernameParameter("username")
-                    .passwordParameter("password")
-                .and().rememberMe()
-                    .tokenValiditySeconds((int) TimeUnit.MINUTES.toSeconds(2))
-                    .rememberMeParameter("remember-me")
-                .and().logout()
-                    .clearAuthentication(true)
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID")
-                .and().exceptionHandling()
-                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                .and().build();
+        if (QUICK_DEBUG) {
+            return http
+                    .csrf().ignoringAntMatchers("/login")
+                    .and().authorizeRequests()
+                    .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
+                    .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
+                    .anyRequest()
+                    .authenticated()
+                    .and().httpBasic()
+                    .and().rememberMe()
+                        .tokenValiditySeconds((int) TimeUnit.MINUTES.toSeconds(1))
+                        .rememberMeParameter("remember-me")
+                    .and().logout()
+                        .clearAuthentication(true)
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                    .and().build();
+        } else {
+            return http
+                    .csrf().ignoringAntMatchers("/login")
+                    .and().authorizeRequests()
+                    .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
+                    .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
+                    .anyRequest()
+                    .authenticated()
+                    .and().formLogin()
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+                        .failureHandler(new SimpleUrlAuthenticationFailureHandler())
+                        .usernameParameter("username")
+                        .passwordParameter("password")
+                    .and().rememberMe()
+                        .tokenValiditySeconds((int) TimeUnit.MINUTES.toSeconds(2))
+                        .rememberMeParameter("remember-me")
+                    .and().logout()
+                        .clearAuthentication(true)
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
+                    .and().exceptionHandling()
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                    .and().build();
+        }
     }
 
     @Bean
