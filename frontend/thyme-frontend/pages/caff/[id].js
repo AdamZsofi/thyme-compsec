@@ -128,7 +128,6 @@ class CommentList extends React.Component {
   }
 
   async componentDidUpdate(prevProps) {
-    // Typical usage (don't forget to compare props):
     if (this.props.caffId !== prevProps.caffId) {
       this.fetchState();
     }
@@ -153,14 +152,40 @@ class CommentList extends React.Component {
     return (
       <div>
         <h1>Comments about this CAFF:</h1>
-        {comments}
+        {comments.length==0 ? <p>No comments yet.</p> : comments}
       </div>
     );
   }
 }
 
 class CommentBox extends React.Component {
-  // TODO
+  constructor(props) {
+    super(props);
+    this.state = {
+      comment: ""
+    }
+  }
+  
+  handleChange(e) {
+    this.setState({comment: e.target.value});
+  }
+
+  handleSubmit(e) {
+    alert("TODO save comment: " + this.state.comment);
+  }
+
+  render() {
+    return (
+      <div>
+        <h2>Add your comment here:</h2>
+        <form id="comment-form">
+          <textarea rows="5" cols="70" name="comment" onChange={this.handleChange.bind(this)} value={this.state.comment}></textarea>
+          <br />
+          <button onClick={this.handleSubmit.bind(this)}>Submit Comment</button>
+        </form>
+      </div>
+    );
+  }
 }
 
 export default withRouter(class CaffPage extends React.Component {
@@ -185,6 +210,7 @@ export default withRouter(class CaffPage extends React.Component {
             <CommentList 
               caffId={id}
             />
+            <CommentBox></CommentBox>
           </div>
         </div>
       </div>
