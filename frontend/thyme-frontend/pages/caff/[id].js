@@ -4,6 +4,8 @@ import {CaffFile} from '../../components/caff-data.js';
 import { withRouter } from 'next/router'
 import Link from 'next/link.js';
 
+import { checkAdminLoginStatus } from '../../components/rest-api-calls.js';
+
 // TODO put rest api calls into separate file in components?
 async function getCaff(id) {
   if(id === undefined) {
@@ -48,16 +50,20 @@ async function getComments(id) {
 class CaffInfo extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { basicCaff: {}}
+    this.state = { 
+      basicCaff: {},
+      isAdmin: false
+    }
   }
 
   async fetchState() {
+    this.setState({isAdmin: checkAdminLoginStatus()});
+
     const caff = await getCaff(this.props.caffId);
     this.setState({basicCaff: caff});
   }
 
   async componentDidUpdate(prevProps) {
-    // Typical usage (don't forget to compare props):
     if (this.props.caffId !== prevProps.caffId) {
       this.fetchState();
     }
@@ -65,6 +71,13 @@ class CaffInfo extends React.Component {
 
   async componentDidMount() {
     this.fetchState();
+  }
+
+  onDelete() {
+    alert("TODO delete caff through server")
+    this.props.router.push({
+      pathname: '/'
+    });
   }
 
   render() {
@@ -85,6 +98,9 @@ class CaffInfo extends React.Component {
         <img className="caffImage" src={this.props.previewUrl} alt="preview of caff"/>
         <br />
         <button onClick={this.props.onClick}>Buy CAFF</button>
+        {
+          this.state.isAdmin ? <div><hr /><button onClick={this.onDelete.bind(this)}>Delete CAFF</button></div> : <></>
+        }
       </div>
     );
   }
@@ -162,6 +178,7 @@ export default withRouter(class CaffPage extends React.Component {
               previewUrl={caffFile.previewUrl}
               tags={caffFile.tags}
               caffId={id}
+              router={this.props.router}
             />
           </div>
           <div className="column">
