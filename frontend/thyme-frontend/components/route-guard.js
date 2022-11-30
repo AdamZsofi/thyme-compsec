@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
 
 function RouteGuard({ children }) {
     const router = useRouter();
@@ -13,7 +12,7 @@ function RouteGuard({ children }) {
         // on route change start - hide page content by setting authorized to false  
         const hideContent = () => setAuthorized(false);
         router.events.on('routeChangeStart', hideContent);
-
+        
         // on route change complete - run auth check 
         router.events.on('routeChangeComplete', authCheck)
 
@@ -26,41 +25,76 @@ function RouteGuard({ children }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    function checkLoginStatus() {
-        axios.get("/ami_logged_in", { withCredentials: true }).then(response => {
-                console.log(response.data);
-                if(typeof response.data === "undefined") {
-                    return false;
-                }
-                return response.data;
-            }
-        ).catch(error => {
-            console.log(error);
-        })
-    }
-
-    function authCheck(url) {
+    async function authCheck(url) {
         // redirect to login page if accessing a private page and not logged in 
-        const publicPaths = ['/signin'];
+        const adminOnlyPath = ['/admin'];
+        const publicPaths = ['/signin', '/signup']; // public as in user shall NOT be logged in to access
         const path = url.split('?')[0];
-        
-        console.log(document.cookie);
-        const cookieValue = document.cookie.split('; ').filter(row => row.startsWith('JSESSIONID=')).map(c=>c.split('=')[1])[0];
-        console.log(cookieValue);
 
-        checkLoginStatus();
-
-        if (checkLoginStatus() && !publicPaths.includes(path)) {
-            setAuthorized(false);
-            router.push({
-                pathname: '/signin'
-            });    
+        if(adminOnlyPath.includes(path)) {
+            if(await checkAdminLoginStatus()) {
+                setAuthorized(true);
+            } else {
+                setAuthorized(false);
+                router.push({
+                    pathname: '/'
+                });    
+            }
+        } else if(await checkLoginStatus()) {
+            console.log("HEY");
+            if(publicPaths.includes(path)) {
+                setAuthorized(false);
+                router.push({
+                    pathname: '/logout'
+                });    
+            } else {
+                setAuthorized(true);
+            }
         } else {
-            setAuthorized(true);
+            if(publicPaths.includes(path)) {
+                setAuthorized(true);
+            } else {
+                setAuthorized(false);
+                router.push({
+                    pathname: '/signin'
+                });
+            }
         }
     }
 
     return (authorized && children);
+}
+
+async function checkLoginStatus() {
+    const res = await fetch('/user/ami_logged_in', {
+        credentials: 'include',
+        method: "GET",
+    })
+    if (res.ok) {
+        console.log(res)
+        if(typeof res.data === 'undefined' || res.data === 'undefined') {
+            return false;
+        }
+        return res.data;
+    } else {
+        return false;
+    }
+}
+
+async function checkAdminLoginStatus() {
+    const res = await fetch('/user/ami_admin', {
+        credentials: 'include',
+        method: "GET",
+    })
+    if (res.ok) {
+        console.log(res)
+        if(typeof res.data === 'undefined' || res.data === 'undefined') {
+            return false;
+        }
+        return res.data;
+    } else {
+        return false;
+    }
 }
 
 export default RouteGuard;

@@ -44,7 +44,7 @@ public class ApplicationSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         if (QUICK_DEBUG) {
             return http
-                    .csrf().ignoringAntMatchers("/login")
+                    .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
                     .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
@@ -61,15 +61,17 @@ public class ApplicationSecurityConfig {
                     .and().build();
         } else {
             return http
-                    .csrf().ignoringAntMatchers("/login")
+                    .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
+                    .antMatchers("/user/ami_logged_in").permitAll()
+                    .antMatchers("/user/ami_admin").permitAll()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
                     .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
                     .anyRequest()
                     .authenticated()
                     .and().formLogin()
                         .loginPage("/login")
-                        .loginProcessingUrl("/login")
+                        .loginProcessingUrl("/user/login")
                         .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
                         .failureHandler(new SimpleUrlAuthenticationFailureHandler())
                         .usernameParameter("username")

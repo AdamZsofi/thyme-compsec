@@ -4,8 +4,8 @@ const nextConfig = {
   swcMinify: true,
   rewrites: async () => [
     {
-      source: "/login",
-      destination: "http://localhost:8080/login"
+      source: "/user/login",
+      destination: "http://localhost:8080/user/login"
     },
     {
       source: "/csrf",
@@ -24,8 +24,12 @@ const nextConfig = {
       destination: "http://localhost:8080/api/caff/comment/:path"
     },
     {
-      source: "/ami_logged_in",
-      destination: "http://localhost:8080/ami_logged_in"
+      source: "/user/ami_logged_in",
+      destination: "http://localhost:8080/user/ami_logged_in"
+    },
+    {
+      source: "/user/ami_admin",
+      destination: "http://localhost:8080/user/ami_admin"
     },
   ]
 }

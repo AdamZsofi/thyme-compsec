@@ -21,6 +21,27 @@ public class UserController {
     @Autowired
     private UserDataRepository userDataRepository;
 
+    @RequestMapping(value = {"/ami_admin"}, method = RequestMethod.GET)
+    public ResponseEntity<Boolean> amiAdmin() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            authentication.getAuthorities();
+            return new ResponseEntity<>(false, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(false, HttpStatus.OK);
+        }
+    }
+
+    @RequestMapping(value = {"/ami_logged_in"}, method = RequestMethod.GET)
+    public ResponseEntity<Boolean> amiLoggedIn() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(false, HttpStatus.OK);
+        }
+    }
+
     @RequestMapping(value = {"/current_user"}, method = RequestMethod.GET)
     public ResponseEntity<String> getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

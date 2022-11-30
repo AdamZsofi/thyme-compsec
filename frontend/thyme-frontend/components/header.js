@@ -13,6 +13,12 @@ function SearchBar(props) {
     </div>
   )
 }
+
+function logOutClick() {
+  router.push({
+    pathname: '/logout'
+  });    
+}
   
 function ThymeHeader(props) {
   return (
@@ -23,7 +29,7 @@ function ThymeHeader(props) {
       </Link>
       <div className="header-right">
         <SearchBar />
-        <button>Logout</button>
+        <button onClick={logOutClick}>Logout</button>
       </div>
     </div>
   );

@@ -3,6 +3,7 @@ import { useState } from "react"
 
 import Layout from "../components/layout"
 import styles from "../styles/signin.module.css"
+import Link from 'next/link.js';
 
 // TODO do we want client side hashing?
 // source: https://www.fullstackbook.com/code/nextjs-jwt/
@@ -24,7 +25,7 @@ export default function SignIn() {
   }
 
   async function handleSubmit() {
-    const res = await fetch(`/login?` + new URLSearchParams({username: state.username, password: state.password}), {
+    const res = await fetch(`/user/login?` + new URLSearchParams({username: state.username, password: state.password}), {
       method: "POST",
     })
     if (res.ok) {
@@ -40,10 +41,11 @@ export default function SignIn() {
       <div className={styles.container}>
         <h1 className={styles.title}>Sign In</h1>
         <div className={styles.form}>
-          <input className={styles.input} type="text" name="username" placeholder="username" value={state.username} onChange={handleChange} />
-          <input className={styles.input} type="password" name="password" placeholder="password" value={state.password} onChange={handleChange} />
+          <input className={styles.input} type="text" name="username" placeholder="username" value={state.username} onChange={handleChange} required />
+          <input className={styles.input} type="password" name="password" placeholder="password" value={state.password} onChange={handleChange} required />
           <button className={styles.btn} onClick={handleSubmit}>Submit</button>
         </div>
+        <Link href="/signup">Not a user yet? Sign up here!</Link>
       </div>
     </Layout>
   )
