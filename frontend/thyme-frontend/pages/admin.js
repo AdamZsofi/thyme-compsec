@@ -115,7 +115,7 @@ class DeleteUser extends React.Component {
         return (
             <Layout>
                 <div className={styles.container}>
-                    <h1 className={styles.title}>Change Password of User</h1>
+                    <h1 className={styles.title}>Delete User</h1>
                     <div className={styles.form}>
                         <UserSelector 
                             value={this.state.id}

@@ -6,7 +6,8 @@ function CaffCard(props) {
       <div className="card" onClick={() => {}}>
         <Link href={"/caff/"+props.caffId}>
           <h2>Name: {props.caffName}</h2>
-          <h3>Uploaded by: {props.userName}</h3>
+          <h3>Price: 0</h3>
+          <h4>Uploaded by: {props.userName}</h4>
         </Link>
       </div>
     )
