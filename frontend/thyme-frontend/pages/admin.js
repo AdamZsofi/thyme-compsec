@@ -1,11 +1,9 @@
 import React from 'react';
 import ThymeHeader from '../components/header.js';
 
-import { useState } from "react"
 import Layout from "../components/layout"
 import styles from "../styles/signin.module.css"
 import validator from 'validator'
-import { render } from 'react-dom';
 
 function UserSelector(props) {
     return (
@@ -13,7 +11,7 @@ function UserSelector(props) {
             {
                 props.users.map((user) => {
                     return (
-                        <option value={user.id}>{user.name}</option>
+                        <option key={user.id} value={user.id}>{user.username}</option>
                     );
                 })
             }
@@ -24,9 +22,10 @@ function UserSelector(props) {
 class ChangePassword extends React.Component {
     constructor(props) {
         super(props);
+
         this.state = {
             id: "",
-            username: "",
+            users: props.users,
             password: "",
             errorMessage: "Password field is empty",
         }
@@ -37,25 +36,25 @@ class ChangePassword extends React.Component {
             minLength: 10, minLowercase: 1,
             minUppercase: 1, minNumbers: 1, minSymbols: 1
         })) {
-            const copy = { ...state }
-            copy[e.target.name] = e.target.value
-            copy['errorMessage'] = 'Password OK'
-            setState(copy)
-
+            this.setState({errorMessage: 'Password OK'});
+            this.setState({password: e.target.value});
         } else {
-            const copy = { ...state }
-            copy[e.target.name] = e.target.value
-            copy['errorMessage'] = 'Password is not strong enough!'
-            setState(copy)
+            this.setState({errorMessage: 'Password is not strong enough!'});
+            this.setState({password: e.target.value});
         }
     }
 
     handleChange(e) {
-
+        this.setState({id: e.target.value});
     }
 
     handleSubmit(e) {
-        alert("TODO: handle pwd change submit");
+        if(this.state.errorMessage==='Password OK') {
+            alert("TODO: handle pwd change submit");
+            window.location.reload();
+        } else {
+            alert("Password is not strong enough!");
+        }
     }
 
     render() {
@@ -66,11 +65,11 @@ class ChangePassword extends React.Component {
                     <div className={styles.form}>
                         <UserSelector 
                             value={this.state.id}
-                            users={[]}
-                            handleChange={this.handleChange}
+                            users={this.props.users}
+                            handleChange={this.handleChange.bind(this)}
                         />
-                        <input className={styles.input} type="password" name="password" placeholder="new password" value={this.state.password} onChange={this.handlePwdChange} required />
-                        <button className={styles.btn} onClick={this.handleSubmit}>Change Password</button>
+                        <input className={styles.input} type="password" name="password" placeholder="new password" value={this.state.password} onChange={this.handlePwdChange.bind(this)} required />
+                        <button className={styles.btn} onClick={this.handleSubmit.bind(this)}>Change Password</button>
                     </div>
                 </div>
                 {this.state.errorMessage === '' ? null :
@@ -92,7 +91,60 @@ class ChangePassword extends React.Component {
     };
 }
 
+class DeleteUser extends React.Component {
+    constructor(props) {
+        super(props);
+        
+        this.state = {
+            id: "",
+            password: "",
+            errorMessage: "Password field is empty",
+        }
+    }
+
+    handleChange(e) {
+        this.setState({id: e.target.value});
+    }
+
+    handleSubmit(e) {
+        alert("TODO: handle delete user submit");
+        window.location.reload();
+    }
+
+    render() {
+        return (
+            <Layout>
+                <div className={styles.container}>
+                    <h1 className={styles.title}>Change Password of User</h1>
+                    <div className={styles.form}>
+                        <UserSelector 
+                            value={this.state.id}
+                            users={this.props.users}
+                            handleChange={this.handleChange.bind(this)}
+                        />
+                        <button className={styles.btn} onClick={this.handleSubmit.bind(this)}>Delete User</button>
+                    </div>
+                </div>
+            </Layout>
+        );
+    };
+}
+
 class AdminPage extends React.Component {
+    // TODO add rest api call to get user list
+    constructor(props) {
+        super(props);
+        const users = [
+            {id:1, username:'Anne'},
+            {id:2, username:'Bob'},
+            {id:3, username:'User'},
+        ]
+
+        this.state = {
+            users: users,
+        }
+    }
+
     render() {
         return (
             <div>
@@ -100,10 +152,14 @@ class AdminPage extends React.Component {
                 <h1>Hi admin</h1>
                 <div className="caff-page-row">
                     <div className="column">
-                        <ChangePassword />
+                        <ChangePassword 
+                            users={this.state.users}
+                        />
                     </div>
                     <div className="column">
-                        <p>TODO: delete user form</p>
+                        <DeleteUser 
+                            users={this.state.users}
+                        />
                     </div>
                 </div>
             </div>

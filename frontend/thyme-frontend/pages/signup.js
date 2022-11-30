@@ -54,7 +54,9 @@ export default function SignIn() {
         router.push("/signin")
       } else {
         alert("Could not sign you up, please try again!")
-      }  
+      }
+    } else {
+      alert("Password is not strong enough!");
     }
   }
 

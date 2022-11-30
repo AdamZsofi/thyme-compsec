@@ -4,13 +4,24 @@ import Image from 'next/image';
 import logo from "/public/thyme.png"
 
 import { useRouter } from 'next/router';
+import { useState } from "react"
 
 function SearchBar(props) {
+  const [state, setState] = useState({
+    key: ''
+  })
+  
+  function handleChange(e) {
+    const copy = { ...state }
+    copy[e.target.name] = e.target.value
+    setState(copy)
+  }
+
   return (
     <div className="searchContainer">
       <form>
-        <button type="submit">Submit</button>
-        <input type="text" placeholder="Search.."></input>
+        <button type="submit" formAction="/search">Submit</button>
+        <input type="text" name="key" placeholder="Search.." onChange={handleChange} value={state.key}></input>
       </form>
     </div>
   )
@@ -21,7 +32,7 @@ function logOutClick(router) {
     pathname: '/logout'
   });    
 }
-  
+
 function ThymeHeader(props) {
   const router= useRouter();
 
