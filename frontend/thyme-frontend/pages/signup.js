@@ -46,7 +46,7 @@ export default function SignIn() {
 
   async function handleSubmit() {
     if(state.errorMessage==='Password OK') {
-      const res = await fetch(`/signin?` + new URLSearchParams({username: state.username, password: state.password}), {
+      const res = await fetch(`/user/register?` + new URLSearchParams({username: state.username, password: state.password}), {
         method: "POST",
       })
       if (res.ok) {

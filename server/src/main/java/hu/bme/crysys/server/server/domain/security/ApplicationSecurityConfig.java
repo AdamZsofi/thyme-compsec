@@ -63,6 +63,7 @@ public class ApplicationSecurityConfig {
             return http
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
+                    .antMatchers("/user/register").permitAll()
                     .antMatchers("/user/ami_logged_in").permitAll()
                     .antMatchers("/user/ami_admin").permitAll()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())

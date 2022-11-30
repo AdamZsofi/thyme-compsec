@@ -29,10 +29,16 @@ export default function SignIn() {
       method: "POST",
     })
     if (res.ok) {
-      console.log(res)
-      router.push("/")
+      console.log(res);
+      router.push("/");
     } else {
-      alert("Bad credentials")
+      if(res.status==401) {
+        alert("Bad credentials");
+      } else if (res.status==500) {
+        alert("Server error");
+      } else {
+        alert("Unknown Error")
+      }
     }
   }
 

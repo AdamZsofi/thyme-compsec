@@ -21,24 +21,25 @@ public class UserController {
     @Autowired
     private UserDataRepository userDataRepository;
 
-    @RequestMapping(value = {"/ami_admin"}, method = RequestMethod.GET)
-    public ResponseEntity<Boolean> amiAdmin() {
+    @RequestMapping(value = {"/ami_admin"}, method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> amiAdmin() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             authentication.getAuthorities();
-            return new ResponseEntity<>(false, HttpStatus.OK);
+            return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(false, HttpStatus.OK);
+            // TODO true only for debugging purposes
+            return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
         }
     }
 
-    @RequestMapping(value = {"/ami_logged_in"}, method = RequestMethod.GET)
-    public ResponseEntity<Boolean> amiLoggedIn() {
+    @RequestMapping(value = {"/ami_logged_in"}, method = RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    public ResponseEntity<String> amiLoggedIn() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            return new ResponseEntity<>(true, HttpStatus.OK);
+            return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(false, HttpStatus.OK);
+            return new ResponseEntity<>(Boolean.FALSE.toString(), HttpStatus.OK);
         }
     }
 
@@ -56,6 +57,9 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<UserData> registerUser(@RequestBody @Validated UserData userData) {
+        // TODO Check if user already logged in! Should send an error back if user is logged in already
+        // TODO check password requirements here as well (already checked once on client side, but needs to be checked here as well)
+        // requirements: minLength: 10, minLowercase: 1, minUppercase: 1, minNumbers: 1, minSymbols: 1
         String password = userData.getPassword();
         String username = userData.getUserName();
         if (password != null && username != null) {
@@ -74,6 +78,7 @@ public class UserController {
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> loginUser(@RequestBody @Validated UserData userData) {
+        // TODO Check if user already logged in! Should send an error back if user is logged in already
         String password = userData.getPassword();
         String username = userData.getUserName();
         if (password != null && username != null) {

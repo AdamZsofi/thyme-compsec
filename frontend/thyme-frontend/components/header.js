@@ -3,6 +3,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import logo from "/public/thyme.png"
 
+import { useRouter } from 'next/router';
+
 function SearchBar(props) {
   return (
     <div className="searchContainer">
@@ -14,13 +16,15 @@ function SearchBar(props) {
   )
 }
 
-function logOutClick() {
+function logOutClick(router) {
   router.push({
     pathname: '/logout'
   });    
 }
   
 function ThymeHeader(props) {
+  const router= useRouter();
+
   return (
     <div className="header">
       <Link href="/" className="logo">
@@ -29,7 +33,7 @@ function ThymeHeader(props) {
       </Link>
       <div className="header-right">
         <SearchBar />
-        <button onClick={logOutClick}>Logout</button>
+        <button onClick={() => logOutClick(router)}>Logout</button>
       </div>
     </div>
   );

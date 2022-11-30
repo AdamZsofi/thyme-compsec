@@ -88,6 +88,9 @@ public class ManagementApiController {
         }
     }
 
+    // TODO get all usernames and their ids endpoint - ONLY simple users, don't send admins please (simple get, just so I can show a list of them)
+
+    // TODO modify user password (instead of modify user name) - I'll send the same kind of user+pwd data as when registering, but with an existing username and a new password for it
     @RequestMapping(value = "/modify/user/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)

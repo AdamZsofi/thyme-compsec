@@ -1,17 +1,20 @@
 import React from 'react';
-import ThymeHeader from '../components/header.js';
+import { useRouter } from 'next/router';
 
-function handleLogout() {
-    alert("TODO");
-    router.push({
-        pathname: '/signin'
-    });
+function handleLogout(router) {
+    //TODO server logout
+    console.log("TODO server logout");
+    //router.push({
+    //    pathname: '/signin'
+    //});
 }
 
 function LogoutPage(props) {
+    const router= useRouter();
+    
     return (
         <div>
-            <button onClick={handleLogout}>Click here to log out</button>
+            <button onClick={() => handleLogout(router)}>Click here to log out</button>
         </div>
     )
 }

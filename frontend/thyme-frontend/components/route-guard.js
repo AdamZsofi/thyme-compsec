@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { checkLoginStatus, checkAdminLoginStatus } from './rest-api-calls.js';
 
+// https://jasonwatmore.com/post/2021/08/30/next-js-redirect-to-login-page-if-unauthenticated
 function RouteGuard({ children }) {
     const router = useRouter();
     const [authorized, setAuthorized] = useState(false);
@@ -31,22 +33,29 @@ function RouteGuard({ children }) {
         const publicPaths = ['/signin', '/signup']; // public as in user shall NOT be logged in to access
         const path = url.split('?')[0];
 
+        const isLoggedIn = await checkLoginStatus();
+        const isAdmin = await checkAdminLoginStatus();
+
         if(adminOnlyPath.includes(path)) {
-            if(await checkAdminLoginStatus()) {
+            if(isAdmin) {
                 setAuthorized(true);
-            } else {
+            } else if(isLoggedIn) {
                 setAuthorized(false);
                 router.push({
                     pathname: '/'
                 });    
+            } else {
+                setAuthorized(false);
+                router.push({
+                    pathname: '/signin'
+                });
             }
-        } else if(await checkLoginStatus()) {
-            console.log("HEY");
+        } else if(isLoggedIn) {
             if(publicPaths.includes(path)) {
                 setAuthorized(false);
                 router.push({
                     pathname: '/logout'
-                });    
+                });
             } else {
                 setAuthorized(true);
             }
@@ -63,38 +72,6 @@ function RouteGuard({ children }) {
     }
 
     return (authorized && children);
-}
-
-async function checkLoginStatus() {
-    const res = await fetch('/user/ami_logged_in', {
-        credentials: 'include',
-        method: "GET",
-    })
-    if (res.ok) {
-        console.log(res)
-        if(typeof res.data === 'undefined' || res.data === 'undefined') {
-            return false;
-        }
-        return res.data;
-    } else {
-        return false;
-    }
-}
-
-async function checkAdminLoginStatus() {
-    const res = await fetch('/user/ami_admin', {
-        credentials: 'include',
-        method: "GET",
-    })
-    if (res.ok) {
-        console.log(res)
-        if(typeof res.data === 'undefined' || res.data === 'undefined') {
-            return false;
-        }
-        return res.data;
-    } else {
-        return false;
-    }
 }
 
 export default RouteGuard;
