@@ -3,6 +3,8 @@ package hu.bme.crysys.server.server.controller;
 import hu.bme.crysys.server.server.domain.database.CaffComment;
 import hu.bme.crysys.server.server.domain.database.CaffFile;
 import hu.bme.crysys.server.server.domain.database.UserData;
+import hu.bme.crysys.server.server.domain.parser.CaffParseResult;
+import hu.bme.crysys.server.server.domain.parser.ParserController;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
@@ -22,6 +24,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
@@ -59,7 +62,13 @@ public class CaffApiController {
             innerJson.put("id", caffFile.getId());
             innerJson.put("filename", caffFile.getPublicFileName());
             innerJson.put("username", caffFile.getUserData().getUserName());
-            // TODO tags
+            
+            String path = String.valueOf(Path.of(caffFile.getPath(), caffFile.getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
+            assert caffParseResult != null;
+            innerJson.put("tags", caffParseResult.getTags().toString());
+
             caffs.add(innerJson);
         }
         JSONObject jsonObject = new JSONObject();
@@ -76,10 +85,16 @@ public class CaffApiController {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             JSONObject innerJson = new JSONObject();
-            innerJson.put("id", caffFile.get().getId());
+            innerJson.put("id", id);
             innerJson.put("filename", caffFile.get().getPublicFileName());
             innerJson.put("username", caffFile.get().getUserData().getUserName());
-            // TODO tags
+
+            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            assert caffParseResult != null;
+            innerJson.put("tags", caffParseResult.getTags().toString());
+
             return new ResponseEntity<>(innerJson.toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -87,13 +102,16 @@ public class CaffApiController {
     }
 
     @GetMapping(value = "/caff/preview/{id}")
-    public ResponseEntity<MultipartFile> getCaffFilePicById(@PathVariable Integer id) {
+    public ResponseEntity<File> getCaffFilePicById(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            String path = caffFile.get().getPath();
-            // TODO when parser finished
-            logger.debug(path);
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            assert caffParseResult != null;
+            String fileName = caffParseResult.ciffList.get(0).fileName;
+            File file = new File(fileName);
+            return new ResponseEntity<>(file, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
