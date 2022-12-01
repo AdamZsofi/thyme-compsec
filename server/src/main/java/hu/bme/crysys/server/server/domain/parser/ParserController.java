@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
@@ -16,24 +17,30 @@ public class ParserController {
 
     //todo provide the path of your compiled CAFF parser.
     private static String parserExecutablePath = "C:\\Users\\pinte\\OneDrive\\Dokumentumok\\semester9\\comSec\\thyme-compsec\\native\\build\\CAFF.exe";
+    //TODO provide source path
+    private static String root = "C:\\Users\\pinte\\OneDrive\\Dokumentumok\\semester9\\comSec\\thyme-compsec\\native\\build\\";
 
-    public static CaffParseResult parse(String CAFFFileName, String outputPath){
-
-        File directory = new File(outputPath);
-        if (! directory.exists()){
-            directory.mkdirs();//can create the entire directory path including parents
+    public static CaffParseResult parse(String CAFFFileName, String id){
+        String outputPath = Paths.get(root, id).toString();
+        System.out.println(outputPath);
+        File outputFolder = new File(outputPath);
+        deleteFolder(outputFolder);//ATTENTION, former content will be deleted!
+        if (!outputFolder.exists()){
+            outputFolder.mkdirs();//can create the entire directory path including parents
         }
 
-        //maybe current wd + outputpath or something else?
-        final File outputFolder = new File(outputPath);
         CaffParseResult result;
         Runtime rt = Runtime.getRuntime();
         try {
-            Process pr = rt.exec(parserExecutablePath + " "  + CAFFFileName + " " + outputPath);
+            Process pr = rt.exec(parserExecutablePath + " "  + CAFFFileName + " " + outputPath + "/");
             int exitCode = pr.waitFor();
             logPr(pr);
             logPrErr(pr);
             System.out.println("Parser returned with code " + exitCode);
+            if(exitCode != 0) {
+                System.out.println("Parsing failed");
+                return null;//todo handle null (or throw some exception)
+            }
             result = scanAndSaveMetaData(outputFolder);
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -59,6 +66,8 @@ public class ParserController {
 
 
     private static CaffParseResult scanAndSaveMetaData(final File folder) throws IOException {
+        folder.getPath();
+
         int numAnim = 0;
         String creator = "";
         String date = "";
@@ -78,6 +87,20 @@ public class ParserController {
         return fileSplit[1].equals("json");
     }
 
+    public static void deleteFolder(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteFolder(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        folder.delete();
+    }
+
     private static CaffParseResult.CIFF jsonToCIFF(File file) throws IOException {
         String jsonfilename = file.getName();
         String imgFileName = jsonfilename.replaceAll("json", "bmp");
@@ -93,6 +116,4 @@ public class ParserController {
         }
         return new CaffParseResult.CIFF( imgFileName, duration, caption, tagsArrList);
     }
-
-
 }

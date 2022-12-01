@@ -11,6 +11,16 @@ public class CaffParseResult {
     public final String date;
     public final String creator;
     public final List<CIFF> ciffList;
+
+    public ArrayList<String> getTags(){
+        ArrayList<String> tags = new ArrayList<>();
+        for(CIFF c : ciffList){
+            for(String tag : c.tags){
+                if(!tags.contains(tag)) tags.add(tag);
+            }
+        }
+        return tags;
+    }
     public CaffParseResult(int numAnim, String date, String creator, ArrayList<CIFF> ciffList){
         this.ciffList = ciffList;
         this.creator = creator;
