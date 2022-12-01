@@ -29,13 +29,30 @@ void Parser::saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byt
     fout.close();
 }
 
+void Parser::saveCAFFDetails(std::string filename, std::string creator, std::string date, uint64_t numAnim){
+    std::ofstream fout(filename);
+    fout << "{" << std::endl;
+    fout << " \"creator\" : \"" << creator << "\"," << std::endl;
+    fout << " \"date\" : \"" << date << "\"," << std::endl;
+    fout << " \"numanim\" : " <<  numAnim << std::endl;    
+    fout << "}" << std::endl;
+    fout.close();
+}
+
 void Parser::saveMetaData(std::string filename, uint64_t duration, std::string caption, std::vector<std::string> tags){
     std::ofstream fout(filename);
-    fout << duration << std::endl;
-    fout << caption << std::endl;
+    fout << "{" << std::endl;
+    fout << " \"duration\" : " << duration << "," << std::endl;
+    fout << " \"caption\" : \"" <<  caption << "\"," << std::endl;    
+    fout << " \"tags\" : [" << std::endl;
+    int i = 1; 
     for(std::string tag : tags){
-        fout << tag << std::endl;
+        fout << "\"" << tag << "\"";
+        if(i++ != tags.size()) fout << ",";
     }
+    fout << std::endl << "]" << std::endl;
+    
+    fout << "}" << std::endl;
     fout.close();
 }
 
@@ -213,9 +230,23 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename, std::
         return result;
     }
 
-    //CAFF ANIMATION STUFF
+    //SAVING CAFF METADATA 
     //--------------------------------------------------------------------------------------------------
     std::cout << "Expected CIFF Frames: "<< numAnim << std::endl;
+    std::string caffDetailsFile = outFileName + "details";
+    std::string stringCreator{ CAFFCredits.begin() + 14, CAFFCredits.end() };
+    std::cout<< stringCreator;
+    uint16_t year = bytes2uint16_t({ CAFFCredits.begin(), CAFFCredits.begin() + 2 });
+    uint8_t month = CAFFCredits[2];
+    uint8_t day = CAFFCredits[3];
+    uint8_t hour = CAFFCredits[4];
+    uint8_t minute = CAFFCredits[5];
+    std::string stringDate = std::to_string(year) + "-" +std::to_string(month) + "-" + std::to_string(day) + " " + std::to_string(hour) + ":" + std::to_string(minute);
+    
+    saveCAFFDetails(caffDetailsFile, stringCreator, stringDate, numAnim);
+    
+    //CAFF ANIMATION STUFF
+    //--------------------------------------------------------------------------------------------------
     for(uint64_t ciffNum = 0; ciffNum < numAnim; ciffNum++){
         if(caffFile.size() < ciffBlockOffset + 9){
             std::cout << "short caffFile" << std::endl;
@@ -246,8 +277,8 @@ size_t Parser::parseCaff(std::vector<char> caffFile, std::string filename, std::
         std::ostringstream ss;
         ss << std::setw(3) << std::setfill('0') << ciffNum;
         std::string oNum(ss.str());
-        std::string FileName = filename  + "_"+ oNum + ".bmp";
-        std::string OutFileName = outFileName + "_" + oNum + ".txt";
+        std::string FileName = outFileName  + "_"+ oNum + ".bmp";
+        std::string OutFileName = outFileName + "_" + oNum + ".json";
         parseCiff(cifFile, FileName, OutFileName, duration);
         ciffBlockOffset += caffAnimationBlockLength + 9;
     }

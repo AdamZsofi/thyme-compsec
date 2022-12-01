@@ -21,16 +21,6 @@ public class UserData {
     @NotNull
     private String userName;
 
-    @Column(name = "password")
-    @NotNull
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    private String password;
-
-    @Column(name = "isAdmin")
-    @NotNull
-    @JsonIgnore
-    private Boolean isAdmin;
-
     @OneToMany(mappedBy = "userData")
     @JsonManagedReference
     @JsonIgnore
@@ -41,10 +31,7 @@ public class UserData {
     @JsonIgnore
     private List<CaffFile> downloadableFiles;
 
-    @PrePersist
-    private void prePersist() {
-        if (isAdmin == null) isAdmin = false;
-    }
+    private String password;
 
     public UserData() {}
 
@@ -65,24 +52,6 @@ public class UserData {
     }
 
     @JsonIgnore
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @JsonIgnore
-    public Boolean getAdmin() {
-        return isAdmin;
-    }
-
-    public void setAdmin(Boolean admin) {
-        isAdmin = admin;
-    }
-
-    @JsonIgnore
     public List<CaffFile> getOwnFiles() {
         return ownFiles;
     }
@@ -100,36 +69,11 @@ public class UserData {
         this.downloadableFiles = downloadableFiles;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        UserData userData = (UserData) o;
-
-        if (!Objects.equals(id, userData.id)) return false;
-        if (!Objects.equals(userName, userData.userName)) return false;
-        return Objects.equals(password, userData.password);
+    public String getPassword() {
+        return password;
     }
 
-    @Override
-    public int hashCode() {
-        int result = id != null ? id.hashCode() : 0;
-        result = 31 * result + (userName != null ? userName.hashCode() : 0);
-        result = 31 * result + (password != null ? password.hashCode() : 0);
-        result = 31 * result + (isAdmin != null ? isAdmin.hashCode() : 0);
-        result = 31 * result + (ownFiles != null ? ownFiles.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return "UserData{" +
-                "id=" + id +
-                ", userName='" + userName + '\'' +
-                ", password='" + password + '\'' +
-                ", isAdmin=" + isAdmin +
-                ", files=" + ownFiles +
-                '}';
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

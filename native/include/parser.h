@@ -70,6 +70,7 @@ class Parser
 public:
     Parser();
     ~Parser();
+    void saveCAFFDetails(std::string filename, std::string creator, std::string date, uint64_t numAnim);
     void saveBytesAsBMP(int32_t width, int32_t height, std::vector<char> byteArr, std::string filename);
     void saveMetaData(std::string filename, uint64_t durationm, std::string caption, std::vector<std::string> tags);
     size_t parseCiff(std::vector<char> ciffFile, std::string filename, std::string outFilename,uint64_t duration);

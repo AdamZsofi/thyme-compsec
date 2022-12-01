@@ -3,6 +3,8 @@ package hu.bme.crysys.server.server.controller;
 import hu.bme.crysys.server.server.domain.database.CaffComment;
 import hu.bme.crysys.server.server.domain.database.CaffFile;
 import hu.bme.crysys.server.server.domain.database.UserData;
+import hu.bme.crysys.server.server.domain.parser.CaffParseResult;
+import hu.bme.crysys.server.server.domain.parser.ParserController;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
@@ -13,10 +15,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
@@ -37,6 +45,10 @@ public class CaffApiController {
     private CaffCommentRepository caffCommentRepository;
     @Autowired
     private UserDataRepository userDataRepository;
+    @Autowired
+    private InMemoryUserDetailsManager inMemoryUserDetailsManager;
+
+    // TODO search
 
     // TODO search result - I'll send a keyword (in whatever format you want) and I need back a list of caffs (similarly to /caff) as search results
 
@@ -46,21 +58,23 @@ public class CaffApiController {
     @GetMapping(value = "/caff",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getAllCaffFile() {
-        logger.info("getAllCaffFile");
-
         List<JSONObject> caffs = new ArrayList<>();
         for (var caffFile : caffFileRepository.findAll()) {
             JSONObject innerJson = new JSONObject();
             innerJson.put("id", caffFile.getId());
             innerJson.put("filename", caffFile.getPublicFileName());
             innerJson.put("username", caffFile.getUserData().getUserName());
+            
+            String path = String.valueOf(Path.of(caffFile.getPath(), caffFile.getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
+            assert caffParseResult != null;
+            innerJson.put("tags", caffParseResult.getTags().toString());
+
             caffs.add(innerJson);
         }
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("caffs", caffs);
-
-        logger.debug(jsonObject.toString());
-
         return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
     }
 
@@ -70,13 +84,19 @@ public class CaffApiController {
     @GetMapping(value = "/caff/{id}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getCaffFileById(@PathVariable Integer id) {
-        logger.info("getCaffFileById " + id.toString());
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             JSONObject innerJson = new JSONObject();
-            innerJson.put("id", caffFile.get().getId());
+            innerJson.put("id", id);
             innerJson.put("filename", caffFile.get().getPublicFileName());
             innerJson.put("username", caffFile.get().getUserData().getUserName());
+
+            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            assert caffParseResult != null;
+            innerJson.put("tags", caffParseResult.getTags().toString());
+
             return new ResponseEntity<>(innerJson.toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -84,14 +104,16 @@ public class CaffApiController {
     }
 
     @GetMapping(value = "/caff/preview/{id}")
-    public ResponseEntity<MultipartFile> getCaffFilePicById(@PathVariable Integer id) {
-        logger.info("getCaffFilePicById " + id.toString());
+    public ResponseEntity<File> getCaffFilePicById(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            String path = caffFile.get().getPath();
-            // TODO when parser finished
-            logger.debug(path);
-            return new ResponseEntity<>(HttpStatus.I_AM_A_TEAPOT);
+            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            assert caffParseResult != null;
+            String fileName = caffParseResult.ciffList.get(0).fileName;
+            File file = new File(fileName);
+            return new ResponseEntity<>(file, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
@@ -99,7 +121,6 @@ public class CaffApiController {
 
     @GetMapping(value = "/caff/comment/{id}")
     public ResponseEntity<String> getCaffFileCommentById(@PathVariable Integer id) {
-        logger.info("getCaffFileCommentById " + id.toString());
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
 
@@ -114,23 +135,23 @@ public class CaffApiController {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("comments", comments);
 
-            logger.debug(jsonObject.toString());
             return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
 
+    // TODO by -> response true
+
     /*
     Downloading
      */
     @GetMapping(value = "/download/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> downloadCaffFile(@PathVariable Integer id,
-                                                          @RequestBody @Validated UserData userData) {
+    public ResponseEntity<String> downloadCaffFile(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            if (true) { // TODO userData.getDownloadableFiles().contains(caffFile.get())
+            if (true) { // TODO userData.getDownloadableFiles().contains(caffFile.get()) // get userData from session
                 try {
                     String path = String.valueOf(Paths.get(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
                     String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
@@ -151,30 +172,26 @@ public class CaffApiController {
      */
     @RequestMapping(value = "/upload",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam("user_id") Integer user_id) {
-        Optional<UserData> userData = userDataRepository.findById(user_id);
-        if (userData.isPresent()) {
-            try {
-                String toBeHashed = Arrays.toString(file.getBytes())
-                        + userData.get().getUserName()
-                        + userData.get().getId();
-                MessageDigest md = MessageDigest.getInstance("SHA-256");
-                BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
-                StringBuilder hexString = new StringBuilder(number.toString(16));
-                while (hexString.length() < 64) { hexString.insert(0, '0'); }
-                String hash = hexString.toString();
+    public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
+        try {
+            // TODO check if empty
+            String toBeHashed = Arrays.toString(file.getBytes())
+                    + userDetails.getUsername()
+                    + userDetails.getPassword();
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
+            StringBuilder hexString = new StringBuilder(number.toString(16));
+            while (hexString.length() < 64) { hexString.insert(0, '0'); }
+            String hash = hexString.toString();
 
-                CaffFile caffFile = new CaffFile(file.getName(), userData.get(), hash);
-                caffFile = caffFileRepository.saveAndFlush(caffFile);
-                Files.createFile(Path.of(caffFile.getPath()));
-                return new ResponseEntity<>(caffFile, HttpStatus.OK);
-            } catch (IOException ioException) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
+            UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
+            CaffFile caffFile = new CaffFile(file.getName(), userData, hash);
+            caffFile = caffFileRepository.saveAndFlush(caffFile);
+            Files.createFile(Path.of(caffFile.getPath()));
+            return new ResponseEntity<>(caffFile, HttpStatus.OK);
+        } catch (IOException | NoSuchAlgorithmException exception) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
@@ -184,29 +201,16 @@ public class CaffApiController {
      */
     @RequestMapping(value = "/comment",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CaffComment> addCommentToCaffFile(@RequestParam("user_id") Integer user_id,
-                                                         @RequestParam("file_id") Integer file_id,
-                                                         @RequestParam("comment") String comment) {
-        Optional<UserData> userData = userDataRepository.findById(user_id);
-        if (userData.isPresent()) {
-            Optional<CaffFile> caffFile = caffFileRepository.findById(file_id);
-            if (caffFile.isPresent()) {
-                CaffComment caffComment = new CaffComment(caffFile.get(), userData.get().getUserName(), comment);
-                return new ResponseEntity<>(caffCommentRepository.saveAndFlush(caffComment), HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
+    public ResponseEntity<CaffComment> addCommentToCaffFile(@RequestParam("file_id") Integer file_id,
+                                                            @RequestParam("comment") String comment) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
+        Optional<CaffFile> caffFile = caffFileRepository.findById(file_id);
+        if (caffFile.isPresent()) {
+            CaffComment caffComment = new CaffComment(caffFile.get(), userDetails.getUsername(), comment);
+            return new ResponseEntity<>(caffCommentRepository.saveAndFlush(caffComment), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }
-
-    /*
-    catch all errors
-     */
-    @ExceptionHandler
-    public ResponseEntity<?> blockAllExceptions(Exception exception) {
-        logger.debug(exception.getMessage());
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }

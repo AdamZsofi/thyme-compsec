@@ -8,19 +8,14 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
-
-import java.util.Base64;
-import java.util.concurrent.TimeUnit;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import static hu.bme.crysys.server.server.domain.security.ApplicationUserPermission.USER_DATA_WRITE;
+import java.util.concurrent.TimeUnit;
+
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.ADMIN;
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.USER;
 
@@ -31,7 +26,7 @@ import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.US
         jsr250Enabled = true)
 public class ApplicationSecurityConfig {
 
-    private final boolean QUICK_DEBUG = false;
+    private final boolean QUICK_DEBUG = true;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -47,8 +42,11 @@ public class ApplicationSecurityConfig {
                     .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
+                    //.antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
+                    .antMatchers("/user/register").permitAll()
+                    .antMatchers("/user/ami_logged_in").permitAll()
+                    .antMatchers("/user/ami_admin").permitAll()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
-                    .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
                     .anyRequest()
                     .authenticated()
                     .and().httpBasic()
@@ -56,6 +54,7 @@ public class ApplicationSecurityConfig {
                         .tokenValiditySeconds((int) TimeUnit.MINUTES.toSeconds(1))
                         .rememberMeParameter("remember-me")
                     .and().logout()
+                        .logoutUrl("/user/logout")
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -69,7 +68,6 @@ public class ApplicationSecurityConfig {
                     .antMatchers("/user/ami_logged_in").permitAll()
                     .antMatchers("/user/ami_admin").permitAll()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
-                    .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
                     .anyRequest()
                     .authenticated()
                     .and().formLogin()
@@ -83,6 +81,7 @@ public class ApplicationSecurityConfig {
                         .tokenValiditySeconds((int) TimeUnit.MINUTES.toSeconds(2))
                         .rememberMeParameter("remember-me")
                     .and().logout()
+                        .logoutUrl("/user/logout")
                         .clearAuthentication(true)
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
@@ -93,7 +92,7 @@ public class ApplicationSecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
+    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
         manager.createUser(User.withUsername("user")
                 .password(passwordEncoder.encode("userPass"))
