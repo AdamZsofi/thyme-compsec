@@ -47,7 +47,7 @@ public class ApplicationSecurityConfig {
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
-                    .antMatchers("/api/management/**").hasAuthority(USER_DATA_WRITE.name())
+                    //.antMatchers("/api/management/**").hasRole(ADMIN.name())
                     .anyRequest()
                     .authenticated()
                     .and().httpBasic()
@@ -89,20 +89,6 @@ public class ApplicationSecurityConfig {
                     .and().build();
         }
     }
-
-    /*@Bean
-    public UserDetailsService userDetailsService() {
-        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-        manager.createUser(User.withUsername("user")
-                .password(passwordEncoder.encode("userPass"))
-                .roles(USER.name())
-                .build());
-        manager.createUser(User.withUsername("admin")
-                .password(passwordEncoder.encode("adminPass"))
-                .roles(ADMIN.name())
-                .build());
-        return manager;
-    }*/
 
     @Bean
     public InMemoryUserDetailsManager inMemoryUserDetailsManager() {

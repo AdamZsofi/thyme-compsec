@@ -11,10 +11,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Optional;
+
+import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.USER;
 
 @RestController
 @RequestMapping("/api/management")
@@ -26,7 +33,10 @@ public class ManagementApiController {
     private CaffCommentRepository caffCommentRepository;
     @Autowired
     private UserDataRepository userDataRepository;
+    @Autowired
+    private InMemoryUserDetailsManager inMemoryUserDetailsManager;
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = "/delete/file/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -36,17 +46,19 @@ public class ManagementApiController {
         if (userDataId != null) {
             Optional<UserData> dataBaseUserData = userDataRepository.findById(userDataId);
             if (dataBaseUserData.isPresent()) {
-                if (dataBaseUserData.get().equals(userData) && dataBaseUserData.get().getAdmin()) {
-                    Optional<CaffFile> caffFile = caffFileRepository.findById(id);
-                    if (caffFile.isPresent()) {
-                        caffCommentRepository.deleteAll(caffFile.get().getComments());
-                        caffFileRepository.delete(caffFile.get());
-                        return new ResponseEntity<>(caffFile.get(), HttpStatus.OK);
+                UserDetails databaseUserDetails = inMemoryUserDetailsManager.loadUserByUsername(dataBaseUserData.get().getUserName());
+                UserDetails givenUserDetails = inMemoryUserDetailsManager.loadUserByUsername(userData.getUserName());
+                if (databaseUserDetails.getPassword().equals(givenUserDetails.getPassword())) {
+                    Optional<CaffFile> toBeDeletedCaffFile = caffFileRepository.findById(id);
+                    if (toBeDeletedCaffFile.isPresent()) {
+                        caffCommentRepository.deleteAll(toBeDeletedCaffFile.get().getComments());
+                        caffFileRepository.delete(toBeDeletedCaffFile.get());
+                        return new ResponseEntity<>(toBeDeletedCaffFile.get(), HttpStatus.OK);
                     } else {
                         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                     }
                 } else {
-                    return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -56,6 +68,7 @@ public class ManagementApiController {
         }
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = "/delete/user/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -65,7 +78,9 @@ public class ManagementApiController {
         if (userDataId != null) {
             Optional<UserData> dataBaseUserData = userDataRepository.findById(userDataId);
             if (dataBaseUserData.isPresent()) {
-                if (dataBaseUserData.get().equals(userData) && dataBaseUserData.get().getAdmin()) {
+                UserDetails databaseUserDetails = inMemoryUserDetailsManager.loadUserByUsername(dataBaseUserData.get().getUserName());
+                UserDetails givenUserDetails = inMemoryUserDetailsManager.loadUserByUsername(userData.getUserName());
+                if (databaseUserDetails.getPassword().equals(givenUserDetails.getPassword())) {
                     Optional<UserData> toBeDeletedUser = userDataRepository.findById(id);
                     if (toBeDeletedUser.isPresent() && !toBeDeletedUser.get().equals(userData)) {
                         for (var caffFile : toBeDeletedUser.get().getOwnFiles()) {
@@ -78,7 +93,7 @@ public class ManagementApiController {
                         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                     }
                 } else {
-                    return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -91,6 +106,8 @@ public class ManagementApiController {
     // TODO get all usernames and their ids endpoint - ONLY simple users, don't send admins please (simple get, just so I can show a list of them)
 
     // TODO modify user password (instead of modify user name) - I'll send the same kind of user+pwd data as when registering, but with an existing username and a new password for it
+
+    /*@PreAuthorize("hasRole('ROLE_ADMIN')")
     @RequestMapping(value = "/modify/user/{id}",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
@@ -101,18 +118,22 @@ public class ManagementApiController {
         if (userDataId != null) {
             Optional<UserData> dataBaseUserData = userDataRepository.findById(userDataId);
             if (dataBaseUserData.isPresent()) {
-                if (dataBaseUserData.get().equals(userData) && dataBaseUserData.get().getAdmin()) {
-                    Optional<UserData> optionalUserData = userDataRepository.findById(id);
-                    if (optionalUserData.isPresent()) {
-                        UserData toBeModifiedUser = optionalUserData.get();
-                        toBeModifiedUser.setUserName(username);
+                UserDetails databaseUserDetails = inMemoryUserDetailsManager.loadUserByUsername(dataBaseUserData.get().getUserName());
+                UserDetails givenUserDetails = inMemoryUserDetailsManager.loadUserByUsername(userData.getUserName());
+                if (databaseUserDetails.getPassword().equals(givenUserDetails.getPassword())) {
+                    Optional<UserData> optionalToBeModifiedUserData = userDataRepository.findById(id);
+                    if (optionalToBeModifiedUserData.isPresent()) {
+                        //UserData toBeModifiedUser = optionalToBeModifiedUserData.get();
+                        //toBeModifiedUser.setUserName(username);
+                        UserDetails toBeModifiedUserDetails = inMemoryUserDetailsManager.loadUserByUsername(optionalToBeModifiedUserData.get().getUserName());
+                        inMemoryUserDetailsManager.updatePassword(toBeModifiedUserDetails)
                         // fallback to merge
                         return new ResponseEntity<>(userDataRepository.saveAndFlush(toBeModifiedUser), HttpStatus.OK);
                     } else {
                         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                     }
                 } else {
-                    return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

@@ -1,10 +1,6 @@
 package hu.bme.crysys.server.server.controller;
 
-import java.util.Objects;
-
 import hu.bme.crysys.server.server.domain.database.UserData;
-import hu.bme.crysys.server.server.domain.security.PasswordConfiguration;
-import hu.bme.crysys.server.server.repository.UserDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +15,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +23,6 @@ import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.US
 @RestController
 @RequestMapping("/user")
 public class UserController {
-    //@Autowired
-    //private UserDataRepository userDataRepository;
 
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -81,14 +74,12 @@ public class UserController {
         String username = userData.getUserName();
         if (password != null && username != null) {
             if (!inMemoryUserDetailsManager.userExists(username)) {
-                logger.info(String.valueOf(inMemoryUserDetailsManager.userExists(username)));
                 UserDetails userDetails = User
                         .withUsername(username)
                         .password(passwordEncoder.encode(password))
                         .roles(USER.name())
                         .build();
                 inMemoryUserDetailsManager.createUser(userDetails);
-                logger.info(String.valueOf(inMemoryUserDetailsManager.userExists(username)));
                 return new ResponseEntity<>(HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -98,22 +89,25 @@ public class UserController {
         }
     }
 
-    /*@GetMapping(value = "/login",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> loginUser(@RequestBody @Validated UserData userData) {
+    @GetMapping(value = "/login",
+            consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> loginUser(@RequestBody @Validated UserData userData) {
         // TODO Check if user already logged in! Should send an error back if user is logged in already
         String password = userData.getPassword();
         String username = userData.getUserName();
         if (password != null && username != null) {
-            UserData existingUserData = userDataRepository.findUserDataByUsername(username);
-            if (existingUserData.getPassword().equals(userData.getPassword())){
-                return new ResponseEntity<>("ok", HttpStatus.OK);
+            if (inMemoryUserDetailsManager.userExists(username)) {
+                UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(username);
+                if (userDetails.getPassword().equals(password)) {
+                    return new ResponseEntity<>(HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-    }*/
+    }
 }

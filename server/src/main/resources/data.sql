@@ -1,5 +1,5 @@
-INSERT INTO UserData (id, username, password, IsAdmin) VALUES (1001, 'anne', 'password', true);
-INSERT INTO UserData (id, username, password) VALUES (1002, 'bob', 'secure');
+INSERT INTO UserData (id, username) VALUES (1001, 'user');
+INSERT INTO UserData (id, username) VALUES (1002, 'admin');
 
 INSERT INTO CaffFile (id, public_file_name, user_id, path, file_name) VALUES (2001, 'testfile1', 1001, 'caffs/2001', 'hash1');
 INSERT INTO CaffFile (id, public_file_name, user_id, path, file_name) VALUES (2002, 'testfile2', 1001, 'caffs/2002', 'hash2');
