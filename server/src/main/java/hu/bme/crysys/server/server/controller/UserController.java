@@ -5,6 +5,8 @@ import java.util.Objects;
 import hu.bme.crysys.server.server.domain.database.UserData;
 import hu.bme.crysys.server.server.domain.security.PasswordConfiguration;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -28,6 +30,8 @@ import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.US
 public class UserController {
     //@Autowired
     //private UserDataRepository userDataRepository;
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private InMemoryUserDetailsManager inMemoryUserDetailsManager;
@@ -77,12 +81,14 @@ public class UserController {
         String username = userData.getUserName();
         if (password != null && username != null) {
             if (!inMemoryUserDetailsManager.userExists(username)) {
+                logger.info(String.valueOf(inMemoryUserDetailsManager.userExists(username)));
                 UserDetails userDetails = User
                         .withUsername(username)
                         .password(passwordEncoder.encode(password))
                         .roles(USER.name())
                         .build();
                 inMemoryUserDetailsManager.createUser(userDetails);
+                logger.info(String.valueOf(inMemoryUserDetailsManager.userExists(username)));
                 return new ResponseEntity<>(HttpStatus.OK);
             } else {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

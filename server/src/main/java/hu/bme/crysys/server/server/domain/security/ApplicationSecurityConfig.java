@@ -31,7 +31,7 @@ import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.US
         jsr250Enabled = true)
 public class ApplicationSecurityConfig {
 
-    private final boolean QUICK_DEBUG = false;
+    private final boolean QUICK_DEBUG = true;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -90,8 +90,22 @@ public class ApplicationSecurityConfig {
         }
     }
 
-    @Bean
+    /*@Bean
     public UserDetailsService userDetailsService() {
+        InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+        manager.createUser(User.withUsername("user")
+                .password(passwordEncoder.encode("userPass"))
+                .roles(USER.name())
+                .build());
+        manager.createUser(User.withUsername("admin")
+                .password(passwordEncoder.encode("adminPass"))
+                .roles(ADMIN.name())
+                .build());
+        return manager;
+    }*/
+
+    @Bean
+    public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
         manager.createUser(User.withUsername("user")
                 .password(passwordEncoder.encode("userPass"))
