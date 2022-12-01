@@ -1,6 +1,7 @@
 import { useRouter } from "next/router"
 import { useState } from "react"
 
+import { postUserLogin } from './rest-api-calls.js';
 import Layout from "../components/layout"
 import styles from "../styles/signin.module.css"
 import Link from 'next/link.js';
@@ -25,21 +26,7 @@ export default function SignIn() {
   }
 
   async function handleSubmit() {
-    const res = await fetch(`/user/login?` + new URLSearchParams({username: state.username, password: state.password}), {
-      method: "POST",
-    })
-    if (res.ok) {
-      console.log(res);
-      router.push("/");
-    } else {
-      if(res.status==401) {
-        alert("Bad credentials");
-      } else if (res.status==500) {
-        alert("Server error");
-      } else {
-        alert("Unknown Error")
-      }
-    }
+    postUserLogin(state.username, state.password);
   }
 
   return (

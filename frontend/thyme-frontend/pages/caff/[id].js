@@ -4,48 +4,7 @@ import {CaffFile} from '../../components/caff-data.js';
 import { withRouter } from 'next/router'
 import Link from 'next/link.js';
 
-import { checkAdminLoginStatus } from '../../components/rest-api-calls.js';
-
-// TODO put rest api calls into separate file in components?
-async function getCaff(id) {
-  if(id === undefined) {
-    return undefined;
-  }
-  const res = await fetch(`/api/caff/`+id, {
-    method: "GET",
-  })
-  if (res.ok) {
-    const json = (await res.json());
-    return json;
-  } else {
-    // TODO this works?
-    return undefined;
-  }
-}
-
-async function getComments(id) {
-  if(id === undefined) {
-    console.log("undefined");
-    return [];
-  }
-
-  const res = await fetch(`/api/caff/comment/`+id, {
-    method: "GET",
-  })
-  if (res.ok) {
-    const json = (await res.json());
-    var comments = [];
-    for(var i in json.comments) {
-      comments.push(json.comments[i]);
-    }
-    return comments;
-  } else {
-    // TODO this works?
-    return [];
-  }
-}
-
-////////////////////////////////////////////////////////////////////
+import { checkAdminLoginStatus, getCaff, getComments } from '../../components/rest-api-calls.js';
 
 class CaffInfo extends React.Component {
   constructor(props) {
