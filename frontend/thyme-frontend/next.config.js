@@ -1,5 +1,5 @@
 /** @type {import('next').NextConfig} */
-const server_address = 'https://localhost:8080'
+// const server_address = 'https://localhost:8080'
 
 const nextConfig = {
   reactStrictMode: false,
