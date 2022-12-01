@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "start": "node server.js",
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
     "lint": "next lint",
     "package": "next export"
   },
@@ -16,6 +16,7 @@
     "axios": "^1.2.0",
     "eslint": "8.28.0",
     "eslint-config-next": "13.0.5",
+    "heroku-ssl-redirect": "^0.1.1",
     "http-proxy-middleware": "^2.0.6",
     "next": "13.0.5",
     "react": "18.2.0",

@@ -1,7 +1,7 @@
 import { useRouter } from "next/router"
 import { useState } from "react"
 
-import { postUserRegistration } from './rest-api-calls.js';
+import { postUserRegistration } from '../components/rest-api-calls.js';
 import Layout from "../components/layout"
 import styles from "../styles/signin.module.css"
 import validator from 'validator'
