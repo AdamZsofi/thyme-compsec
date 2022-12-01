@@ -26,7 +26,7 @@ export default function SignIn() {
   }
 
   async function handleSubmit() {
-    postUserLogin(state.username, state.password);
+    postUserLogin(state.username, state.password, router);
   }
 
   return (

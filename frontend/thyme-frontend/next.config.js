@@ -4,6 +4,7 @@ const server_address = 'https://localhost:8080'
 const nextConfig = {
   reactStrictMode: false,
   swcMinify: true,
+  /*
   rewrites: async () => [
     {
       source: "/user/login",
@@ -33,7 +34,7 @@ const nextConfig = {
       source: "/user/ami_admin",
       destination: server_address+"/user/ami_admin"
     },
-  ]
+  ]*/
 }
 
 module.exports = nextConfig

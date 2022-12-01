@@ -19,8 +19,8 @@
     "heroku-ssl-redirect": "^0.1.1",
     "http-proxy-middleware": "^2.0.6",
     "next": "13.0.5",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "typescript": "4.9.3",
     "validator": "^13.7.0"
   }

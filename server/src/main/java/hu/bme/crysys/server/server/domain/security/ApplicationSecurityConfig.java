@@ -44,6 +44,7 @@ public class ApplicationSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         if (QUICK_DEBUG) {
             return http
+                    .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     .antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
@@ -60,7 +61,8 @@ public class ApplicationSecurityConfig {
                         .deleteCookies("JSESSIONID")
                     .and().build();
         } else {
-            return http
+            return http.cors().and()
+                    .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     .antMatchers("/user/register").permitAll()

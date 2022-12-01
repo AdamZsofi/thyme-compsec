@@ -23,7 +23,7 @@ class UploadForm extends React.Component {
     handleSubmit(e) {
       // TODO check if both are present (html required not working??)
       const formData = new FormData();
-          formData.append('caffName', this.state.caffName);
+      formData.append('caffName', this.state.caffName);
       formData.append('file', this.state.selectedFile);
           alert("TODO upload the caff: " + this.state.caffName + ", filename: " + formData.get("file").name);
 
