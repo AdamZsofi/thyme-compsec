@@ -1,5 +1,7 @@
+const server_address = 'https://localhost:8080';
+
 export async function checkLoginStatus() {
-    const res = await fetch('https://localhost:8080/user/ami_logged_in', {
+    const res = await fetch(server_address + '/user/ami_logged_in', {
         credentials: 'include',
         method: "GET",
         mode: 'cors',
@@ -9,7 +11,6 @@ export async function checkLoginStatus() {
         if(typeof answer === 'undefined' || answer === 'undefined') {
             return false;
         }
-
         return (answer === 'true');
     } else {
         return false;
@@ -17,7 +18,7 @@ export async function checkLoginStatus() {
 }
 
 export async function checkAdminLoginStatus() {
-    const res = await fetch('https://localhost:8080/user/ami_admin', {
+    const res = await fetch(server_address + '/user/ami_admin', {
         credentials: 'include',
         method: "GET",
         mode: 'cors',
@@ -35,8 +36,10 @@ export async function checkAdminLoginStatus() {
 }
 
 export async function getCaffs() {
-    const res = await fetch(`/api/caff`, {
+    const res = await fetch(server_address + '/api/caff', {
         method: "GET",
+        mode: 'cors',
+        credentials: 'include'    
     })
     if (res.ok) {
         const json = (await res.json());
@@ -57,13 +60,19 @@ export async function getSearchResult() {
 }
 
 export async function postUserLogin(username, password, router) {
-  const res = await fetch(`https://localhost:8080/user/login?` + new URLSearchParams({username: username, password: password}), {
+  // server_address + 
+  const res = await fetch(server_address + '/user/login?' + new URLSearchParams({username: username, password: password}), {
     method: "POST",
     mode: 'cors',
+    credentials: 'include'
   })
-  console.log(res);
+  for(const key of res.headers.keys()) {
+    console.log(key);
+    console.log("Value:");
+    console.log(res.headers.get(key));
+  }
+  console.log(await res.text());
   if (res.ok) {
-    console.log(res);
     router.push("/");
   } else {
     if(res.status==401) {
@@ -78,8 +87,10 @@ export async function postUserLogin(username, password, router) {
 
 export async function postUserRegistration(username, password, router) {
   if(state.errorMessage==='Password OK') {
-      const res = await fetch(`/user/register?` + new URLSearchParams({username: username, password: password}), {
+      const res = await fetch(server_address + '/user/register?' + new URLSearchParams({username: username, password: password}), {
         method: "POST",
+        mode: 'cors',
+        credentials: 'include'    
       })
       if (res.ok) {
         console.log(res)
@@ -96,8 +107,10 @@ export async function getCaff(id) {
     if(id === undefined) {
       return undefined;
     }
-    const res = await fetch(`/api/caff/`+id, {
+    const res = await fetch(server_address + '/api/caff/'+id, {
       method: "GET",
+      mode: 'cors',
+      credentials: 'include'
     })
     if (res.ok) {
       const json = (await res.json());
@@ -114,8 +127,10 @@ export async function getComments(id) {
       return [];
     }
   
-    const res = await fetch(`/api/caff/comment/`+id, {
+    const res = await fetch(server_address + '/api/caff/comment/'+id, {
       method: "GET",
+      mode: 'cors',
+      credentials: 'include'
     })
     if (res.ok) {
       const json = (await res.json());

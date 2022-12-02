@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
@@ -32,30 +31,16 @@ public class UserController {
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(value = {"/ami_admin"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> amiAdmin() {
         return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
     }
 
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     @GetMapping(value = {"/ami_logged_in"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> amiLoggedIn() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication.isAuthenticated()) {
-            return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(Boolean.FALSE.toString(), HttpStatus.OK);
-        }
-    }
-
-    @GetMapping(value = {"/current_user"})
-    public ResponseEntity<String> getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
-            return new ResponseEntity<>(authentication.getName(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("anonymous", HttpStatus.OK);
-        }
+        return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
     }
 
     //@PreAuthorize("!isAuthenticated()")
@@ -130,7 +115,10 @@ public class UserController {
 
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
-        logger.debug(exception.getMessage());
-        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        if(exception.getMessage().equals("Access is denied")) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 }
