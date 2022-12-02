@@ -22,6 +22,11 @@ export default function SignIn() {
   })
 
   function handleChange(e) {
+    if(e.target.value==="") {
+      alert("Field cannot be empty");
+      return;
+    }
+
     const copy = { ...state }
     copy[e.target.name] = e.target.value
     setState(copy)

@@ -8,6 +8,7 @@ import hu.bme.crysys.server.server.domain.parser.ParserController;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
+import java.nio.file.FileAlreadyExistsException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +54,7 @@ public class CaffApiController {
     public ResponseEntity<String> findCaffsByTag(@PathVariable("tag") String tag) {
         List<JSONObject> caffs = new ArrayList<>();
         for (var caffFile : caffFileRepository.findAll()) {
-            String path = String.valueOf(Path.of(caffFile.getPath(), caffFile.getFileName() + ".caff"));
+            String path = String.valueOf(Path.of( caffFile.getPath()));
             path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
             CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
             assert caffParseResult != null;
@@ -85,7 +86,7 @@ public class CaffApiController {
             innerJson.put("filename", caffFile.getPublicFileName());
             innerJson.put("username", caffFile.getUserData().getUserName());
             
-            String path = String.valueOf(Path.of(caffFile.getPath(), caffFile.getFileName() + ".caff"));
+            String path = String.valueOf(Path.of(caffFile.getPath()));
             path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
             CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
             assert caffParseResult != null;
@@ -111,7 +112,7 @@ public class CaffApiController {
             innerJson.put("filename", caffFile.get().getPublicFileName());
             innerJson.put("username", caffFile.get().getUserData().getUserName());
 
-            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            String path = String.valueOf(Path.of(caffFile.get().getPath()));
             path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
             CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
             assert caffParseResult != null;
@@ -127,7 +128,7 @@ public class CaffApiController {
     public ResponseEntity<File> getCaffFilePicById(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            String path = String.valueOf(Path.of(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+            String path = String.valueOf(Path.of(caffFile.get().getPath()));
             path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
             CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
             assert caffParseResult != null;
@@ -175,7 +176,7 @@ public class CaffApiController {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             try {
-                String path = String.valueOf(Paths.get(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+                String path = String.valueOf(Paths.get(caffFile.get().getPath()));
                 String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
                 return new ResponseEntity<>(file, HttpStatus.OK);
             } catch (IOException | URISyntaxException e) {
@@ -191,16 +192,16 @@ public class CaffApiController {
      */
     @RequestMapping(value = "/upload",
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file, @RequestParam("caffName") String caffName) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
         try {
             if (file.isEmpty()) {
+                // TODO also check if the file is a valid caff file?
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             } else {
                 String toBeHashed = Arrays.toString(file.getBytes())
-                        + userDetails.getUsername()
-                        + userDetails.getPassword();
+                        + caffName;
                 MessageDigest md = MessageDigest.getInstance("SHA-256");
                 BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
                 StringBuilder hexString = new StringBuilder(number.toString(16));
@@ -208,14 +209,46 @@ public class CaffApiController {
                 String hash = hexString.toString();
 
                 UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
-                CaffFile caffFile = new CaffFile(file.getName(), userData, hash);
+                CaffFile caffFile = new CaffFile(caffName, userData, hash);
                 caffFile = caffFileRepository.saveAndFlush(caffFile);
-                Files.createFile(Path.of(caffFile.getPath()));
+
+                Path caffsDir = Paths.get(
+                    Objects.requireNonNull(this.getClass().getClassLoader().getResource("caffs")).toURI());
+                Path newCaffPath = caffsDir.getParent().resolve(Paths.get(caffFile.getPath()));
+                if(!save(file, newCaffPath)) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
                 return new ResponseEntity<>(caffFile, HttpStatus.OK);
             }
         } catch (IOException | NoSuchAlgorithmException exception) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (URISyntaxException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    public boolean save(MultipartFile file, Path filePath) {
+        try {
+            if(!Files.exists(filePath.getParent())) {
+                try {
+                    Files.createDirectories(filePath.getParent());
+                } catch (IOException e) {
+                    logger.error("Error while creating parent directories: "+e.getMessage());
+                    return false;
+                }
+            }
+            Files.copy(file.getInputStream(), filePath);
+        } catch (Exception e) {
+            if (e instanceof FileAlreadyExistsException) {
+                logger.error(filePath+": a file of that name already exists.");
+            } else {
+                logger.error("Unknown error while saving caff file.");
+                logger.error(e.getMessage());
+            }
+
+            return false;
+        }
+        return true;
     }
 
     /*

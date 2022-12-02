@@ -71,12 +71,6 @@ export async function postUserLogin(username, password, router) {
     credentials: 'include',
     body: formData,
   })
-  for(const key of res.headers.keys()) {
-    console.log(key);
-    console.log("Value:");
-    console.log(res.headers.get(key));
-  }
-  console.log(await res.text());
   if (res.ok) {
     router.push("/");
   } else {
@@ -155,4 +149,36 @@ export async function getComments(id) {
       return [];
     }
 }
-  
+
+export async function uploadCaffForm(formData, router) {
+  const csrf = await getCsrfToken();
+  const res = await fetch(server_address + '/api/upload', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+    body: formData,
+    headers: {
+      "X-CSRF-TOKEN": csrf.token
+    }
+  })
+  if (res.ok) {
+    alert("Successful upload");
+    router.push("/");
+  } else {
+    alert("Upload unsuccessful, try again!")
+  }
+} 
+
+async function getCsrfToken() {
+  const res = await fetch(server_address + '/csrf', {
+    method: "GET",
+    mode: 'cors',
+    credentials: 'include'    
+  })
+  if (res.ok) {
+      const json = await res.json();
+      return json;
+  } else {
+      return undefined;
+  }
+}

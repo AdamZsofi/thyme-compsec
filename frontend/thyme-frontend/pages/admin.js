@@ -62,7 +62,7 @@ class ChangePassword extends React.Component {
             <Layout>
                 <div className={styles.container}>
                     <h1 className={styles.title}>Change Password of User</h1>
-                    <div className={styles.form}>
+                    <form className={styles.form}>
                         <UserSelector 
                             value={this.state.id}
                             users={this.props.users}
@@ -70,7 +70,7 @@ class ChangePassword extends React.Component {
                         />
                         <input className={styles.input} type="password" name="password" placeholder="new password" value={this.state.password} onChange={this.handlePwdChange.bind(this)} required />
                         <button className={styles.btn} onClick={this.handleSubmit.bind(this)}>Change Password</button>
-                    </div>
+                    </form>
                 </div>
                 {this.state.errorMessage === '' ? null :
                     <span style={{

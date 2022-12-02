@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import java.io.File;
 import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
@@ -30,9 +31,6 @@ public class CaffFile {
     @JsonIgnore
     private String path;
 
-    @Column(name = "file_name")
-    private String fileName;
-
     @OneToMany(mappedBy = "caffFile")
     @JsonIgnore
     @JsonManagedReference
@@ -43,8 +41,7 @@ public class CaffFile {
     public CaffFile(String publicFileName, UserData userData, String fileName) {
         this.userData = userData;
         this.publicFileName = publicFileName;
-        this.fileName = fileName;
-        this.path = "/caffs" + id;
+        this.path = "caffs" + File.separator + fileName + File.separator + fileName + ".caff";
     }
 
     public Integer getId() {
@@ -82,14 +79,6 @@ public class CaffFile {
         this.comments = comments;
     }
 
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public String getPublicFileName() {
         return publicFileName;
     }
@@ -111,7 +100,6 @@ public class CaffFile {
             return false;
         if (!Objects.equals(userData, caffFile.userData)) return false;
         if (!Objects.equals(path, caffFile.path)) return false;
-        if (!Objects.equals(fileName, caffFile.fileName)) return false;
         return Objects.equals(comments, caffFile.comments);
     }
 
@@ -121,7 +109,6 @@ public class CaffFile {
         result = 31 * result + (publicFileName != null ? publicFileName.hashCode() : 0);
         result = 31 * result + (userData != null ? userData.hashCode() : 0);
         result = 31 * result + (path != null ? path.hashCode() : 0);
-        result = 31 * result + (fileName != null ? fileName.hashCode() : 0);
         result = 31 * result + (comments != null ? comments.hashCode() : 0);
         return result;
     }
