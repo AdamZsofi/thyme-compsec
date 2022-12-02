@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -13,12 +14,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.security.web.savedrequest.NullRequestCache;
 
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserPermission.USER_DATA_WRITE;
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.ADMIN;
@@ -61,7 +60,7 @@ public class ApplicationSecurityConfig {
                         .deleteCookies("JSESSIONID")
                     .and().build();
         } else {
-            return http.cors().and()
+            return http.cors(Customizer.withDefaults())
                     .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
@@ -75,7 +74,10 @@ public class ApplicationSecurityConfig {
                     .and().formLogin()
                         .loginPage("/login")
                         .loginProcessingUrl("/user/login")
-                        .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+                        .successHandler((req, res, auth) -> {
+                            res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+                            res.setStatus(HttpStatus.NO_CONTENT.value());
+                        })
                         .failureHandler(new SimpleUrlAuthenticationFailureHandler())
                         .usernameParameter("username")
                         .passwordParameter("password")

@@ -58,21 +58,22 @@ export async function getSearchResult() {
 
 export async function postUserLogin(username, password, router) {
   const res = await fetch(`https://localhost:8080/user/login?` + new URLSearchParams({username: username, password: password}), {
-      method: "POST",
-      mode: 'no-cors',
-    })
-    if (res.ok) {
-      console.log(res);
-      router.push("/");
+    method: "POST",
+    mode: 'cors',
+  })
+  console.log(res);
+  if (res.ok) {
+    console.log(res);
+    router.push("/");
+  } else {
+    if(res.status==401) {
+      alert("Bad credentials");
+    } else if (res.status==500) {
+      alert("Server error");
     } else {
-      if(res.status==401) {
-        alert("Bad credentials");
-      } else if (res.status==500) {
-        alert("Server error");
-      } else {
-        alert("Unknown Error")
-      }
-    } 
+      alert("Unknown Error")
+    }
+  } 
 }
 
 export async function postUserRegistration(username, password, router) {
