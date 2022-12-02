@@ -13,5 +13,4 @@ server.ssl.key-store-type=PKCS12
 server.ssl.key-store=../util/backend-certs/thymecert.p12
 server.ssl.key-alias=thymecert
 server.ssl.enabled=true
-server.ssl.client-auth=none
-server.ssl.key-store-password=thymeCertPass
+server.ssl.key-store-password=ThymeCertPass

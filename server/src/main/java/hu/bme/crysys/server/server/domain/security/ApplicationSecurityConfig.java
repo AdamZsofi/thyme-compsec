@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -39,6 +40,7 @@ public class ApplicationSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         if (QUICK_DEBUG) {
             return http
+                    .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     //.antMatchers("/api/**").hasAnyRole(ADMIN.name(), USER.name())
@@ -59,7 +61,8 @@ public class ApplicationSecurityConfig {
                         .deleteCookies("JSESSIONID")
                     .and().build();
         } else {
-            return http
+            return http.cors(Customizer.withDefaults())
+                    .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                     .csrf().ignoringAntMatchers("/user/login")
                     .and().authorizeRequests()
                     .antMatchers("/user/register").permitAll()
@@ -71,7 +74,10 @@ public class ApplicationSecurityConfig {
                     .and().formLogin()
                         .loginPage("/login")
                         .loginProcessingUrl("/user/login")
-                        .successHandler((req, res, auth) -> res.setStatus(HttpStatus.NO_CONTENT.value()))
+                        .successHandler((req, res, auth) -> {
+                            res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+                            res.setStatus(HttpStatus.NO_CONTENT.value());
+                        })
                         .failureHandler(new SimpleUrlAuthenticationFailureHandler())
                         .usernameParameter("username")
                         .passwordParameter("password")

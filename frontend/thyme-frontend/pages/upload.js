@@ -21,28 +21,28 @@ class UploadForm extends React.Component {
     }
 
     handleSubmit(e) {
-        // TODO check if both are present (html required not working??)
-		const formData = new FormData();
-        formData.append('caffName', this.state.caffName);
-		formData.append('file', this.state.selectedFile);
-        alert("TODO upload the caff: " + this.state.caffName + ", filename: " + formData.get("file").name);
+      // TODO check if both are present (html required not working??)
+      const formData = new FormData();
+      formData.append('caffName', this.state.caffName);
+      formData.append('file', this.state.selectedFile);
+          alert("TODO upload the caff: " + this.state.caffName + ", filename: " + formData.get("file").name);
 
-        /*
-		fetch(
-			'https://freeimage.host/api/1/upload?key=<YOUR_API_KEY>',
-			{
-				method: 'POST',
-				body: formData,
-			}
-		)
-			.then((response) => response.json())
-			.then((result) => {
-				console.log('Success:', result);
-			})
-			.catch((error) => {
-				console.error('Error:', error);
-			});
-	    };*/
+          /*
+      fetch(
+        'https://freeimage.host/api/1/upload?key=<YOUR_API_KEY>',
+        {
+          method: 'POST',
+          body: formData,
+        }
+      )
+        .then((response) => response.json())
+        .then((result) => {
+          console.log('Success:', result);
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+        };*/
 	};
     
     render() {

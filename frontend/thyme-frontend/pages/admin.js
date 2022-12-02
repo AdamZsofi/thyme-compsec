@@ -11,7 +11,7 @@ function UserSelector(props) {
             {
                 props.users.map((user) => {
                     return (
-                        <option key={user.id} value={user.id}>{user.username}</option>
+                        <option key={user.username} value={user.username}>{user.username}</option>
                     );
                 })
             }

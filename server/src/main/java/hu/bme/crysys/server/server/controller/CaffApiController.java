@@ -50,6 +50,8 @@ public class CaffApiController {
 
     // TODO search
 
+    // TODO search result - I'll send a keyword (in whatever format you want) and I need back a list of caffs (similarly to /caff) as search results
+
     /*
     Main page
      */
