@@ -235,4 +235,10 @@ public class CaffApiController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
     }
+
+    @ExceptionHandler
+    public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        logger.debug(exception.getMessage());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
 }

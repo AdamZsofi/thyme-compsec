@@ -122,4 +122,10 @@ public class ManagementApiController {
         jsonObject.put("users", users);
         return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
     }
+
+    @ExceptionHandler
+    public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        logger.debug(exception.getMessage());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
 }
