@@ -12,7 +12,8 @@ export default withRouter(class SearchResultPage extends React.Component {
   }
 
   async componentDidMount() {
-    const caffArr = await getSearchResult();
+    const key = this.props.router.query.key
+    const caffArr = await getSearchResult(key);
     this.setState({caffArr: caffArr});
   }
 

@@ -49,14 +49,26 @@ export async function getCaffs() {
         }
         return caffArr;
     } else {
-        // TODO this works?
         return [];
     }
 }
 
-export async function getSearchResult() {
-    // TODO
-    return [];
+export async function getSearchResult(key) {
+  const res = await fetch(server_address + '/api/caff/search/'+key, {
+    method: "GET",
+    mode: 'cors',
+    credentials: 'include'    
+  })
+  if (res.ok) {
+      const json = (await res.json());
+      var caffArr = [];
+      for(var i in json.caffs) {
+      caffArr.push(json.caffs[i]);
+      }
+      return caffArr;
+  } else {
+      return [];
+  }
 }
 
 export async function postUserLogin(username, password, router) {
@@ -121,9 +133,12 @@ export async function getCaff(id) {
       const json = (await res.json());
       return json;
     } else {
-      // TODO this works?
       return undefined;
     }
+}
+
+export async function getPreview(id) {
+    return server_address + '/api/caff/preview/' + id
 }
   
 export async function getComments(id) {
@@ -145,7 +160,6 @@ export async function getComments(id) {
       }
       return comments;
     } else {
-      // TODO this works?
       return [];
     }
 }
@@ -180,7 +194,78 @@ async function getCsrfToken() {
       const json = await res.json();
       return json;
   } else {
-      // TODO some kind of error instead
+      // TODO some kind of error instead?
       return undefined;
+  }
+}
+
+export async function uploadComment(comment, caffId) {
+  const formData = new FormData();
+
+  formData.append("comment", comment);
+  formData.append("file_id", caffId);
+  
+  const csrf = await getCsrfToken();
+  
+  const res = await fetch(server_address + '/api/comment', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+    body: formData,
+    headers: {
+      "X-CSRF-TOKEN": csrf.token
+    },
+  })
+  if (res.ok) {
+    alert("Successfully submitted comment");
+    router.push("/");
+  } else {
+    alert("Comment submission unsuccessful, try again!")
+  }
+}
+
+export async function buyCaff(caffId) {
+  const formData = new FormData();
+
+  formData.append("id", caffId);
+  
+  const csrf = await getCsrfToken();
+  
+  const res = await fetch(server_address + '/api/buy', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+    body: formData,
+    headers: {
+      "X-CSRF-TOKEN": csrf.token
+    },
+  })
+  if (res.ok) {
+    alert("Successfully bought caff, now the website will download it");
+    downloadCaff(caffId);
+  } else {
+    alert("Could not buy caff, try again!")
+  }
+}
+
+async function downloadCaff(id) {
+  const csrf = await getCsrfToken();
+  
+  const res = await fetch(server_address + '/api/download/'+id, {
+    method: "GET",
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+    "X-CSRF-TOKEN": csrf.token
+    },
+  })
+  if (res.ok) {
+    const blob = await res.blob();
+    var a = document.createElement("a");
+    a.href = window.URL.createObjectURL(blob);
+    a.download = id+".caff";
+    a.click();
+  } else {
+    alert("Could not download caff, try to buy it again!")
   }
 }

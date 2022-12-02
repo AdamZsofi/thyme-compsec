@@ -9,7 +9,11 @@ import hu.bme.crysys.server.server.domain.parser.ParserController;
 import hu.bme.crysys.server.server.repository.CaffCommentRepository;
 import hu.bme.crysys.server.server.repository.CaffFileRepository;
 import hu.bme.crysys.server.server.repository.UserDataRepository;
+import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
+import org.apache.commons.io.IOUtils;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,13 +29,11 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -140,23 +142,30 @@ public class CaffApiController {
         }
     }
 
-    @GetMapping(value = "/caff/preview/{id}")
-    public ResponseEntity<File> getCaffFilePicById(@PathVariable Integer id) {
+    @GetMapping(value = "/caff/preview/{id}", produces = "image/bmp")
+    public @ResponseBody byte[] getCaffFilePicById(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             CaffParseResult caffParseResult = null;
             try {
                 caffParseResult = ParserController.parse(caffFile.get().getCaffPath(storageFolder.getStorageFolder()));
             } catch (URISyntaxException e) {
-                logger.error("Could not get caff preview");
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                logger.error("Could not get preview");
+                return new byte[0];
             }
             assert caffParseResult != null;
             String fileName = caffParseResult.ciffList.get(0).fileName;
-            File file = new File(fileName);
-            return new ResponseEntity<>(file, HttpStatus.OK);
+
+            try {
+                InputStream in = new FileInputStream(fileName);
+                return IOUtils.toByteArray(in);
+            } catch (IOException e) {
+                logger.error("Could not get preview"); // TODO will never jump in these, as it is using the exception handler
+                return new byte[0];
+            }
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            logger.error("Could not get preview");
+            return new byte[0];
         }
     }
 
@@ -182,8 +191,9 @@ public class CaffApiController {
         }
     }
 
-    @GetMapping(value = "/buy/{id}")
-    public ResponseEntity<?> buyCaffFile(@PathVariable Integer id) {
+    @PostMapping(value = "/buy", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> buyCaffFile(@RequestParam("id") String id) {
+        // TODO add user and id to list that the user bought the caff?
         return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
     }
 
@@ -191,19 +201,33 @@ public class CaffApiController {
     Downloading
      */
     @GetMapping(value = "/download/{id}",
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> downloadCaffFile(@PathVariable Integer id) {
+        produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+    public @ResponseBody byte[] downloadCaffFile(@PathVariable Integer id) {
+        // TODO check if user can download it
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             try {
-                String file = Arrays.toString(Files.readAllBytes(caffFile.get().getCaffPath(storageFolder.getStorageFolder())));
-                return new ResponseEntity<>(file, HttpStatus.OK);
+                InputStream in = new FileInputStream(
+                    caffFile.get().getCaffPath(storageFolder.getStorageFolder()).toFile());
+                return IOUtils.toByteArray(in);
             } catch (IOException | URISyntaxException e) {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                logger.error("Could not get caff file");
+                return new byte[0];
             }
         } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            logger.error("Could not get caff file");
+            return new byte[0];
         }
+    }
+
+    @GetMapping(
+        value = "/get-file",
+        produces = MediaType.APPLICATION_OCTET_STREAM_VALUE
+    )
+    public @ResponseBody byte[] getFile() throws IOException {
+        InputStream in = getClass()
+            .getResourceAsStream("/com/baeldung/produceimage/data.txt");
+        return IOUtils.toByteArray(in);
     }
 
     /*
@@ -298,6 +322,7 @@ public class CaffApiController {
 
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        exception.printStackTrace();
         logger.debug(exception.getMessage());
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }

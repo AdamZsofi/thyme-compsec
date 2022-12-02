@@ -127,8 +127,9 @@ button:hover {
 /******** HEADER END *******/
 
 /******** CAFF INFO PAGE *******/
-.caffInfo .caffImage {
+.caffImage {
   max-height: 450px;
+  max-width: 500px;
   height: auto;
 }
 

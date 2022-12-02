@@ -93,6 +93,7 @@ public class UserController {
 
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        exception.printStackTrace();
         if(exception.getMessage().equals("Access is denied")) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {

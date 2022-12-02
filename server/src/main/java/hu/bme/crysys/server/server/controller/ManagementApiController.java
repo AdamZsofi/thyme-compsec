@@ -125,6 +125,7 @@ public class ManagementApiController {
 
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        exception.printStackTrace();
         logger.debug(exception.getMessage());
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }

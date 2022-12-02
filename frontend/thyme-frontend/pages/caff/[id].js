@@ -1,16 +1,16 @@
 import React from 'react';
 import ThymeHeader from '../../components/header.js';
-import {CaffFile} from '../../components/caff-data.js';
 import { withRouter } from 'next/router'
 import Link from 'next/link.js';
 
-import { checkAdminLoginStatus, getCaff, getComments } from '../../components/rest-api-calls.js';
+import { buyCaff, getPreview, uploadComment, checkAdminLoginStatus, getCaff, getComments } from '../../components/rest-api-calls.js';
 
 class CaffInfo extends React.Component {
   constructor(props) {
     super(props);
     this.state = { 
-      basicCaff: {},
+      basicCaff: undefined,
+      previewImgUrl: undefined,
       isAdmin: false
     }
   }
@@ -20,6 +20,9 @@ class CaffInfo extends React.Component {
 
     const caff = await getCaff(this.props.caffId);
     this.setState({basicCaff: caff});
+
+    const previewImgUrl = await getPreview(this.props.caffId);
+    this.setState({previewImgUrl: previewImgUrl});
   }
 
   async componentDidUpdate(prevProps) {
@@ -39,6 +42,10 @@ class CaffInfo extends React.Component {
     });
   }
 
+  onClick() {
+    buyCaff(this.state.basicCaff.id);
+  }
+
   render() {
     if(typeof this.state.basicCaff === "undefined") {
       return (
@@ -53,10 +60,10 @@ class CaffInfo extends React.Component {
       <div className="caffInfo">        
         <h1>{this.state.basicCaff.filename}</h1>
         <h2>Added by {this.state.basicCaff.username}</h2>
-        <p><b>Tags:</b> {this.props.tags.join(", ")}</p>
-        <img className="caffImage" src={this.props.previewUrl} alt="preview of caff"/>
+        <p><b>Tags:</b> {this.state.basicCaff.tags}</p>
+        <img className="caffImage" src={this.state.previewImgUrl} alt="preview of caff"/>
         <br />
-        <button onClick={this.props.onClick}>Buy CAFF</button>
+        <button onClick={this.onClick.bind(this)}>Buy CAFF</button>
         {
           this.state.isAdmin ? <div><hr /><button onClick={this.onDelete.bind(this)}>Delete CAFF</button></div> : <></>
         }
@@ -130,7 +137,7 @@ class CommentBox extends React.Component {
   }
 
   handleSubmit(e) {
-    alert("TODO save comment: " + this.state.comment);
+    uploadComment(this.state.comment, this.props.caffId);
   }
 
   render() {
@@ -150,17 +157,13 @@ class CommentBox extends React.Component {
 export default withRouter(class CaffPage extends React.Component {
   render() {
     const id = this.props.router.query.id
-    const caffFile = new CaffFile(id, "Caff"+id, "user1",
-                                  ["cat", "kimchi", "ramen"], "../placeholder.webp");
-  
+
     return (
       <div>
         <ThymeHeader />
         <div className="caff-page-row">
           <div className="column">
             <CaffInfo 
-              previewUrl={caffFile.previewUrl}
-              tags={caffFile.tags}
               caffId={id}
               router={this.props.router}
             />
@@ -169,7 +172,9 @@ export default withRouter(class CaffPage extends React.Component {
             <CommentList 
               caffId={id}
             />
-            <CommentBox></CommentBox>
+            <CommentBox 
+              caffId={id}
+            />
           </div>
         </div>
       </div>

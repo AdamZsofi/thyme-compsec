@@ -17,6 +17,7 @@ public class CsrfController {
 
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
+        exception.printStackTrace();
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 }
