@@ -36,3 +36,14 @@ build/
 util/certs
 util/frontend-certs
 util/backend-certs
+
+store/*
+!store/caffs
+
+store/caffs/*
+!store/caffs/2001
+store/caffs/2001/result
+!store/caffs/2002
+store/caffs/2002/result
+!store/caffs/2003
+store/caffs/2003/result

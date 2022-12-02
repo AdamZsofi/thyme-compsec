@@ -23,7 +23,6 @@ public class ParserController {
     private static final Logger logger = LoggerFactory.getLogger(ParserController.class);
 
     private static final String parserExecutablePath = Objects.requireNonNull(ParserController.class.getClassLoader().getResource("parser/CAFF")).getPath();
-    private static final String root = Objects.requireNonNull(ParserController.class.getClassLoader().getResource("caffs")).getPath();
 
     public static CaffParseResult parse(Path CAFFFileName){
         Path parent = CAFFFileName.getParent();

@@ -34,8 +34,8 @@ class UploadForm extends React.Component {
       }
 
       const formData = new FormData();
-      formData.append('caffName', this.state.caffName);
       formData.append('file', this.state.selectedFile);
+      formData.append('caffName', this.state.caffName);
       
       uploadCaffForm(formData, this.props.router)
   	};

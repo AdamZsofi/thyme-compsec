@@ -152,6 +152,7 @@ export async function getComments(id) {
 
 export async function uploadCaffForm(formData, router) {
   const csrf = await getCsrfToken();
+  
   const res = await fetch(server_address + '/api/upload', {
     method: "POST",
     mode: 'cors',
@@ -159,7 +160,7 @@ export async function uploadCaffForm(formData, router) {
     body: formData,
     headers: {
       "X-CSRF-TOKEN": csrf.token
-    }
+    },
   })
   if (res.ok) {
     alert("Successful upload");
@@ -179,6 +180,7 @@ async function getCsrfToken() {
       const json = await res.json();
       return json;
   } else {
+      // TODO some kind of error instead
       return undefined;
   }
 }

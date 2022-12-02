@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
+import hu.bme.crysys.server.server.domain.StorageFolder;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -11,6 +12,7 @@ import java.nio.file.Paths;
 import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Entity
 @Table(name = "CaffFile")
@@ -44,7 +46,7 @@ public class CaffFile {
     public CaffFile(String publicFileName, UserData userData, String fileName) {
         this.userData = userData;
         this.publicFileName = publicFileName;
-        this.path = "caffs" + File.separator + fileName + File.separator + fileName + ".caff";
+        this.path = fileName + File.separator + fileName + ".caff";
     }
 
     public Integer getId() {
@@ -61,11 +63,8 @@ public class CaffFile {
     }
 
     @JsonIgnore
-    public Path getCaffPath() throws URISyntaxException {
-        Path caffsDir = Paths.get(
-            Objects.requireNonNull(this.getClass().getClassLoader().getResource("caffs")).toURI());
-        Path caffPath = caffsDir.getParent().resolve(Paths.get(this.getPath()));
-        return caffPath;
+    public Path getCaffPath(Path storagePath) throws URISyntaxException {
+        return storagePath.resolve(Paths.get(this.getPath()));
     }
 
     public void setUserData(UserData userData) {

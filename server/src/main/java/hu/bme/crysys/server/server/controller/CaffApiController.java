@@ -1,5 +1,6 @@
 package hu.bme.crysys.server.server.controller;
 
+import hu.bme.crysys.server.server.domain.StorageFolder;
 import hu.bme.crysys.server.server.domain.database.CaffComment;
 import hu.bme.crysys.server.server.domain.database.CaffFile;
 import hu.bme.crysys.server.server.domain.database.UserData;
@@ -13,15 +14,14 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -49,6 +49,10 @@ public class CaffApiController {
     @Autowired
     private InMemoryUserDetailsManager inMemoryUserDetailsManager;
 
+    @Autowired
+    @Qualifier("storageFolder")
+    private StorageFolder storageFolder;
+
     @GetMapping(value = "/caff/search/{tag}",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> findCaffsByTag(@PathVariable("tag") String tag) {
@@ -56,7 +60,7 @@ public class CaffApiController {
         for (var caffFile : caffFileRepository.findAll()) {
             CaffParseResult caffParseResult = null;
             try {
-                caffParseResult = ParserController.parse(caffFile.getCaffPath());
+                caffParseResult = ParserController.parse(caffFile.getCaffPath(storageFolder.getStorageFolder()));
             } catch (URISyntaxException e) {
                 logger.error("Could not get caff for search");
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -92,7 +96,7 @@ public class CaffApiController {
 
             CaffParseResult caffParseResult = null;
             try {
-                caffParseResult = ParserController.parse(caffFile.getCaffPath());
+                caffParseResult = ParserController.parse(caffFile.getCaffPath(storageFolder.getStorageFolder()));
             } catch (URISyntaxException e) {
                 logger.error("Could not get caff");
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -122,7 +126,7 @@ public class CaffApiController {
 
             CaffParseResult caffParseResult = null;
             try {
-                caffParseResult = ParserController.parse(caffFile.get().getCaffPath());
+                caffParseResult = ParserController.parse(caffFile.get().getCaffPath(storageFolder.getStorageFolder()));
             } catch (URISyntaxException e) {
                 logger.error("Could not get caff");
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -142,7 +146,7 @@ public class CaffApiController {
         if (caffFile.isPresent()) {
             CaffParseResult caffParseResult = null;
             try {
-                caffParseResult = ParserController.parse(caffFile.get().getCaffPath());
+                caffParseResult = ParserController.parse(caffFile.get().getCaffPath(storageFolder.getStorageFolder()));
             } catch (URISyntaxException e) {
                 logger.error("Could not get caff preview");
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -192,8 +196,7 @@ public class CaffApiController {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
             try {
-                String path = String.valueOf(Paths.get(caffFile.get().getPath()));
-                String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
+                String file = Arrays.toString(Files.readAllBytes(caffFile.get().getCaffPath(storageFolder.getStorageFolder())));
                 return new ResponseEntity<>(file, HttpStatus.OK);
             } catch (IOException | URISyntaxException e) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
@@ -207,7 +210,8 @@ public class CaffApiController {
     Uploading
      */
     @RequestMapping(value = "/upload",
-            produces = MediaType.APPLICATION_JSON_VALUE)
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<CaffFile> uploadCaffFile(@RequestParam("file") MultipartFile file, @RequestParam("caffName") String caffName) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
@@ -226,10 +230,21 @@ public class CaffApiController {
                 UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
                 CaffFile caffFile = new CaffFile(caffName, userData, hash);
                 caffFile = caffFileRepository.saveAndFlush(caffFile);
-                Path newCaffPath = caffFile.getCaffPath();
+                Path newCaffPath = caffFile.getCaffPath(storageFolder.getStorageFolder());
+
                 if(!save(file, newCaffPath)) {
                     return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
                 }
+
+                CaffParseResult caffParseResult = null;
+                try {
+                    caffParseResult = ParserController.parse(caffFile.getCaffPath(storageFolder.getStorageFolder()));
+                } catch (URISyntaxException e) {
+                    logger.error("Could not get caff");
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                assert caffParseResult != null;
+
                 return new ResponseEntity<>(caffFile, HttpStatus.OK);
             }
         } catch (IOException | NoSuchAlgorithmException exception) {
