@@ -48,9 +48,29 @@ public class CaffApiController {
     @Autowired
     private InMemoryUserDetailsManager inMemoryUserDetailsManager;
 
-    // TODO search
+    @GetMapping(value = "/caff/search/{tag}",
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> findCaffsByTag(@PathVariable("tag") String tag) {
+        List<JSONObject> caffs = new ArrayList<>();
+        for (var caffFile : caffFileRepository.findAll()) {
+            String path = String.valueOf(Path.of(caffFile.getPath(), caffFile.getFileName() + ".caff"));
+            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
+            CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
+            assert caffParseResult != null;
 
-    // TODO search result - I'll send a keyword (in whatever format you want) and I need back a list of caffs (similarly to /caff) as search results
+            if (caffParseResult.getTags().contains(tag)) {
+                JSONObject innerJson = new JSONObject();
+                innerJson.put("id", caffFile.getId());
+                innerJson.put("filename", caffFile.getPublicFileName());
+                innerJson.put("username", caffFile.getUserData().getUserName());
+                innerJson.put("tags", caffParseResult.getTags().toString());
+                caffs.add(innerJson);
+            }
+        }
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("caffs", caffs);
+        return new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK);
+    }
 
     /*
     Main page
@@ -141,7 +161,10 @@ public class CaffApiController {
         }
     }
 
-    // TODO by -> response true
+    @GetMapping(value = "/buy/{id}")
+    public ResponseEntity<?> buyCaffFile(@PathVariable Integer id) {
+        return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
+    }
 
     /*
     Downloading
@@ -151,15 +174,11 @@ public class CaffApiController {
     public ResponseEntity<String> downloadCaffFile(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            if (true) { // TODO userData.getDownloadableFiles().contains(caffFile.get()) // get userData from session
-                try {
-                    String path = String.valueOf(Paths.get(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
-                    String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
-                    return new ResponseEntity<>(file, HttpStatus.OK);
-                } catch (IOException | URISyntaxException e) {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            } else {
+            try {
+                String path = String.valueOf(Paths.get(caffFile.get().getPath(), caffFile.get().getFileName() + ".caff"));
+                String file = Arrays.toString(Files.readAllBytes(Path.of(Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).toURI())));
+                return new ResponseEntity<>(file, HttpStatus.OK);
+            } catch (IOException | URISyntaxException e) {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
         } else {
@@ -176,21 +195,24 @@ public class CaffApiController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
         try {
-            // TODO check if empty
-            String toBeHashed = Arrays.toString(file.getBytes())
-                    + userDetails.getUsername()
-                    + userDetails.getPassword();
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
-            StringBuilder hexString = new StringBuilder(number.toString(16));
-            while (hexString.length() < 64) { hexString.insert(0, '0'); }
-            String hash = hexString.toString();
+            if (file.isEmpty()) {
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            } else {
+                String toBeHashed = Arrays.toString(file.getBytes())
+                        + userDetails.getUsername()
+                        + userDetails.getPassword();
+                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                BigInteger number = new BigInteger(1, md.digest(toBeHashed.getBytes()));
+                StringBuilder hexString = new StringBuilder(number.toString(16));
+                while (hexString.length() < 64) { hexString.insert(0, '0'); }
+                String hash = hexString.toString();
 
-            UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
-            CaffFile caffFile = new CaffFile(file.getName(), userData, hash);
-            caffFile = caffFileRepository.saveAndFlush(caffFile);
-            Files.createFile(Path.of(caffFile.getPath()));
-            return new ResponseEntity<>(caffFile, HttpStatus.OK);
+                UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
+                CaffFile caffFile = new CaffFile(file.getName(), userData, hash);
+                caffFile = caffFileRepository.saveAndFlush(caffFile);
+                Files.createFile(Path.of(caffFile.getPath()));
+                return new ResponseEntity<>(caffFile, HttpStatus.OK);
+            }
         } catch (IOException | NoSuchAlgorithmException exception) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

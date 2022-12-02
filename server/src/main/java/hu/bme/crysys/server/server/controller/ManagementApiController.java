@@ -13,7 +13,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,12 +20,9 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
-import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.USER;
+import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.ADMIN;
 
 @RestController
 @RequestMapping("/api/management")
@@ -108,16 +104,19 @@ public class ManagementApiController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    // TODO get all usernames and their ids endpoint - ONLY simple users, don't send admins please (simple get, just so I can show a list of them)
     @GetMapping(value = "/users",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getAllUsers() {
         List<JSONObject> users = new ArrayList<>();
         for (var user : userDataRepository.findAll()) {
-            JSONObject innerJson = new JSONObject();
-            innerJson.put("id", user.getId());
-            innerJson.put("username", user.getUserName());
-            users.add(innerJson);
+            Collection<? extends GrantedAuthority> auths =
+                    inMemoryUserDetailsManager.loadUserByUsername(user.getUserName()).getAuthorities();
+            if (!auths.toString().contains(ADMIN.name())) { // TODO check
+                JSONObject innerJson = new JSONObject();
+                innerJson.put("id", user.getId());
+                innerJson.put("username", user.getUserName());
+                users.add(innerJson);
+            }
         }
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("users", users);

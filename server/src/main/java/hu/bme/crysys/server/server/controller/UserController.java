@@ -38,11 +38,10 @@ public class UserController {
         return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
     }
 
-    // TODO check BAD
     @GetMapping(value = {"/ami_logged_in"}, produces = MediaType.TEXT_PLAIN_VALUE)
     public ResponseEntity<String> amiLoggedIn() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+        if (authentication.isAuthenticated()) {
             return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
         } else {
             return new ResponseEntity<>(Boolean.FALSE.toString(), HttpStatus.OK);
@@ -107,7 +106,7 @@ public class UserController {
         }
     }
 
-    //@PreAuthorize("isAuthenticated()") // TODO
+    //@PreAuthorize("!isAuthenticated()") // TODO check
     @GetMapping(value = "/login",
             consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> loginUser(@RequestBody @Validated UserData userData) {
