@@ -60,11 +60,16 @@ export async function getSearchResult() {
 }
 
 export async function postUserLogin(username, password, router) {
-  // server_address + 
-  const res = await fetch(server_address + '/user/login?' + new URLSearchParams({username: username, password: password}), {
+  const formData = new FormData();
+
+  formData.append("username", username);
+  formData.append("password", password);
+  
+  const res = await fetch(server_address + '/user/login', {
     method: "POST",
     mode: 'cors',
-    credentials: 'include'
+    credentials: 'include',
+    body: formData,
   })
   for(const key of res.headers.keys()) {
     console.log(key);
@@ -86,11 +91,17 @@ export async function postUserLogin(username, password, router) {
 }
 
 export async function postUserRegistration(username, password, router) {
+  const formData = new FormData();
+
+  formData.append("username", username);
+  formData.append("password", password);
+
   if(state.errorMessage==='Password OK') {
-      const res = await fetch(server_address + '/user/register?' + new URLSearchParams({username: username, password: password}), {
+      const res = await fetch(server_address + '/user/register', {
         method: "POST",
         mode: 'cors',
-        credentials: 'include'    
+        credentials: 'include',
+        body: formData,
       })
       if (res.ok) {
         console.log(res)

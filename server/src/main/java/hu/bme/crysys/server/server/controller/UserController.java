@@ -91,28 +91,6 @@ public class UserController {
         }
     }
 
-    //@PreAuthorize("!isAuthenticated()") // TODO check
-    @GetMapping(value = "/login",
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> loginUser(@RequestBody @Validated UserData userData) {
-        String password = userData.getPassword();
-        String username = userData.getUserName();
-        if (password != null && username != null) {
-            if (inMemoryUserDetailsManager.userExists(username)) {
-                UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(username);
-                if (userDetails.getPassword().equals(password)) {
-                    return new ResponseEntity<>(HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-                }
-            } else {
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-            }
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-    }
-
     @ExceptionHandler
     public ResponseEntity<?> blockAllExceptions(Exception exception) {
         if(exception.getMessage().equals("Access is denied")) {
