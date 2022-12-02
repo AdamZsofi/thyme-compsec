@@ -54,9 +54,13 @@ public class CaffApiController {
     public ResponseEntity<String> findCaffsByTag(@PathVariable("tag") String tag) {
         List<JSONObject> caffs = new ArrayList<>();
         for (var caffFile : caffFileRepository.findAll()) {
-            String path = String.valueOf(Path.of( caffFile.getPath()));
-            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
-            CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
+            CaffParseResult caffParseResult = null;
+            try {
+                caffParseResult = ParserController.parse(caffFile.getCaffPath());
+            } catch (URISyntaxException e) {
+                logger.error("Could not get caff for search");
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             assert caffParseResult != null;
 
             if (caffParseResult.getTags().contains(tag)) {
@@ -85,10 +89,14 @@ public class CaffApiController {
             innerJson.put("id", caffFile.getId());
             innerJson.put("filename", caffFile.getPublicFileName());
             innerJson.put("username", caffFile.getUserData().getUserName());
-            
-            String path = String.valueOf(Path.of(caffFile.getPath()));
-            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
-            CaffParseResult caffParseResult = ParserController.parse(path, caffFile.getId().toString());
+
+            CaffParseResult caffParseResult = null;
+            try {
+                caffParseResult = ParserController.parse(caffFile.getCaffPath());
+            } catch (URISyntaxException e) {
+                logger.error("Could not get caff");
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             assert caffParseResult != null;
             innerJson.put("tags", caffParseResult.getTags().toString());
 
@@ -112,9 +120,13 @@ public class CaffApiController {
             innerJson.put("filename", caffFile.get().getPublicFileName());
             innerJson.put("username", caffFile.get().getUserData().getUserName());
 
-            String path = String.valueOf(Path.of(caffFile.get().getPath()));
-            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
-            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            CaffParseResult caffParseResult = null;
+            try {
+                caffParseResult = ParserController.parse(caffFile.get().getCaffPath());
+            } catch (URISyntaxException e) {
+                logger.error("Could not get caff");
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             assert caffParseResult != null;
             innerJson.put("tags", caffParseResult.getTags().toString());
 
@@ -128,9 +140,13 @@ public class CaffApiController {
     public ResponseEntity<File> getCaffFilePicById(@PathVariable Integer id) {
         Optional<CaffFile> caffFile = caffFileRepository.findById(id);
         if (caffFile.isPresent()) {
-            String path = String.valueOf(Path.of(caffFile.get().getPath()));
-            path = Objects.requireNonNull(this.getClass().getClassLoader().getResource(path)).getPath();
-            CaffParseResult caffParseResult = ParserController.parse(path, id.toString());
+            CaffParseResult caffParseResult = null;
+            try {
+                caffParseResult = ParserController.parse(caffFile.get().getCaffPath());
+            } catch (URISyntaxException e) {
+                logger.error("Could not get caff preview");
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
             assert caffParseResult != null;
             String fileName = caffParseResult.ciffList.get(0).fileName;
             File file = new File(fileName);
@@ -197,7 +213,6 @@ public class CaffApiController {
         UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
         try {
             if (file.isEmpty()) {
-                // TODO also check if the file is a valid caff file?
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             } else {
                 String toBeHashed = Arrays.toString(file.getBytes())
@@ -211,10 +226,7 @@ public class CaffApiController {
                 UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
                 CaffFile caffFile = new CaffFile(caffName, userData, hash);
                 caffFile = caffFileRepository.saveAndFlush(caffFile);
-
-                Path caffsDir = Paths.get(
-                    Objects.requireNonNull(this.getClass().getClassLoader().getResource("caffs")).toURI());
-                Path newCaffPath = caffsDir.getParent().resolve(Paths.get(caffFile.getPath()));
+                Path newCaffPath = caffFile.getCaffPath();
                 if(!save(file, newCaffPath)) {
                     return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
                 }

@@ -25,10 +25,11 @@ public class ParserController {
     private static final String parserExecutablePath = Objects.requireNonNull(ParserController.class.getClassLoader().getResource("parser/CAFF")).getPath();
     private static final String root = Objects.requireNonNull(ParserController.class.getClassLoader().getResource("caffs")).getPath();
 
-    public static CaffParseResult parse(String CAFFFileName, String id){
-        String outputPath = Paths.get(root, id, "result").toString();
+    public static CaffParseResult parse(Path CAFFFileName){
+        Path parent = CAFFFileName.getParent();
+        Path outputPath = parent.resolve("result");
         System.out.println(outputPath);
-        File outputFolder = new File(outputPath);
+        File outputFolder = outputPath.toFile();
         deleteFolder(outputFolder);//ATTENTION, former content will be deleted!
         if (!outputFolder.exists()){
             outputFolder.mkdirs();//can create the entire directory path including parents

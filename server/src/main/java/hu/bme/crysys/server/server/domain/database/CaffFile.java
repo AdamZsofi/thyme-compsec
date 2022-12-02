@@ -5,6 +5,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.io.File;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import javax.persistence.*;
 import java.util.List;
 import java.util.Objects;
@@ -55,6 +58,14 @@ public class CaffFile {
     @JsonIgnore
     public UserData getUserData() {
         return userData;
+    }
+
+    @JsonIgnore
+    public Path getCaffPath() throws URISyntaxException {
+        Path caffsDir = Paths.get(
+            Objects.requireNonNull(this.getClass().getClassLoader().getResource("caffs")).toURI());
+        Path caffPath = caffsDir.getParent().resolve(Paths.get(this.getPath()));
+        return caffPath;
     }
 
     public void setUserData(UserData userData) {
