@@ -1,6 +1,8 @@
 package hu.bme.crysys.server.server.domain.security;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -12,6 +14,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,6 +26,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationFa
 
 import java.util.concurrent.TimeUnit;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.web.cors.CorsConfiguration;
 
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.ADMIN;
 import static hu.bme.crysys.server.server.domain.security.ApplicationUserRole.USER;
@@ -42,9 +46,16 @@ public class ApplicationSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        return http.cors(Customizer.withDefaults())
+        return http.cors().configurationSource(request-> {
+                        CorsConfiguration configuration = new CorsConfiguration();
+                        configuration.setAllowedOrigins(List.of("https://localhost:3000"));
+                        configuration.setAllowedMethods(List.of("GET","POST"));
+                        configuration.setAllowedHeaders(List.of("*"));
+                        configuration.setAllowCredentials(true);
+                        return configuration;
+                    }).and()
                 .requiresChannel(channel -> channel.anyRequest().requiresSecure())
-                .csrf().ignoringAntMatchers("/user/login")
+                .csrf().ignoringAntMatchers("/user/login", "/user/register")
                 .and().authorizeRequests()
                 .antMatchers("/user/register").permitAll()
                 .antMatchers("/user/ami_logged_in").permitAll()
@@ -61,12 +72,24 @@ public class ApplicationSecurityConfig {
                         res.setHeader("Access-Control-Allow-Credentials", "true");
                         res.setStatus(HttpStatus.NO_CONTENT.value());
                     })
-                    .failureHandler(new SimpleUrlAuthenticationFailureHandler())
+                    .failureHandler((req, res, auth) -> {
+                        res.setHeader("Access-Control-Allow-Origin", "https://localhost:3000");
+                        res.setHeader("Access-Control-Allow-Headers", "https://localhost:3000");
+                        res.setHeader("Access-Control-Allow-Credentials", "true");
+                        res.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    })
                     .usernameParameter("username")
                     .passwordParameter("password")
-                .and().logout()
+                .and()
+                .logout()
                     .logoutUrl("/user/logout")
                     .addLogoutHandler(corsLogoutHandler())
+                    .logoutSuccessHandler((request, response, authentication) -> {
+                        response.setHeader("Access-Control-Allow-Origin", "https://localhost:3000");
+                        response.setHeader("Access-Control-Allow-Headers", "https://localhost:3000");
+                        response.setHeader("Access-Control-Allow-Credentials", "true");
+                        response.setStatus(HttpStatus.NO_CONTENT.value());
+                    })
                     .clearAuthentication(true)
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")

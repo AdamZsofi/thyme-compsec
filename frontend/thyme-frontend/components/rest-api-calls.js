@@ -102,22 +102,18 @@ export async function postUserRegistration(username, password, router) {
   formData.append("username", username);
   formData.append("password", password);
 
-  if(state.errorMessage==='Password OK') {
-      const res = await fetch(server_address + '/user/register', {
-        method: "POST",
-        mode: 'cors',
-        credentials: 'include',
-        body: formData,
-      })
-      if (res.ok) {
-        console.log(res)
-        router.push("/signin")
-      } else {
-        alert("Could not sign you up, please try again!")
-      }
-    } else {
-      alert("Password is not strong enough!");
-    }  
+  const res = await fetch(server_address + '/user/register', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+    body: formData,
+  })
+  if (res.ok) {
+    console.log(res)
+    router.push("/signin")
+  } else {
+    alert("Could not sign you up, please try again!")
+  }
 }
 
 export async function getCaff(id) {
@@ -249,15 +245,10 @@ export async function buyCaff(caffId) {
 }
 
 async function downloadCaff(id) {
-  const csrf = await getCsrfToken();
-  
   const res = await fetch(server_address + '/api/download/'+id, {
     method: "GET",
     mode: 'cors',
     credentials: 'include',
-    headers: {
-    "X-CSRF-TOKEN": csrf.token
-    },
   })
   if (res.ok) {
     const blob = await res.blob();
@@ -272,6 +263,7 @@ async function downloadCaff(id) {
 
 export async function logout(router) {
   const csrf = await getCsrfToken();
+  console.log(csrf.token);
 
   const res = await fetch(server_address + '/user/logout', {
     method: "POST",
@@ -292,4 +284,72 @@ export async function logout(router) {
       alert("Unknown Error")
     }
   } 
+}
+
+export async function getUsers() {
+  const res = await fetch(server_address + '/api/management/users', {
+    method: "GET",
+    mode: 'cors',
+    credentials: 'include',
+  })
+  if (res.ok) {
+    const json = (await res.json());
+    var userArr = [];
+    for(var i in json.users) {
+      userArr.push(json.users[i]);
+    }
+    return userArr;
+  } else {
+    alert("Could not load users, try to load the page again!")
+  }
+}
+
+export async function postUserModification(username, password) {
+  const formData = new FormData();
+
+  formData.append("username", username);
+  formData.append("password", password);
+
+  console.log(username);
+  console.log(password);
+  const csrf = await getCsrfToken();
+
+  const res = await fetch(server_address + '/api/management/modify/user', {
+    method: "POST",
+    mode: 'cors',
+      credentials: 'include',
+      body: formData,
+      headers: {
+        "X-CSRF-TOKEN": csrf.token
+      },    
+    })
+    if (res.ok) {
+      console.log(res)
+    } else {
+      alert("Could not change user password, please try again!")
+    }  
+}
+
+export async function postUserDelete(username) {
+  const formData = new FormData();
+
+  formData.append("username", username);
+
+  console.log(username);
+  const csrf = await getCsrfToken();
+
+  const res = await fetch(server_address + '/api/management/delete/user', {
+    method: "POST",
+    mode: 'cors',
+      credentials: 'include',
+      body: formData,
+      headers: {
+        "X-CSRF-TOKEN": csrf.token
+      },    
+    })
+    if (res.ok) {
+      console.log(res)
+    } else {
+      alert("Could not delete user, please try again!")
+    }  
 }

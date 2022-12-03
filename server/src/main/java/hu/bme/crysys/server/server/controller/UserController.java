@@ -8,8 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -44,10 +42,9 @@ public class UserController {
     }
 
     //@PreAuthorize("!isAuthenticated()")
-    @GetMapping(value = "/register",
-            consumes = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> registerUser(@RequestBody @Validated UserData userData) {
-        String password = userData.getPassword();
+    @PostMapping(value = "/register",
+        consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> registerUser(@RequestParam("username") String username, @RequestParam("password") String password) {
         if (password != null) {
             String specialChars = "~`!@#$%^&*()-_=+\\|[{]};:'\",<.>/?";
             boolean numberPresent = false;
@@ -70,7 +67,6 @@ public class UserController {
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
-            String username = userData.getUserName();
             if (username != null) {
                 if (!inMemoryUserDetailsManager.userExists(username)) {
                     UserDetails userDetails = User

@@ -52,10 +52,11 @@ public class ManagementApiController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @RequestMapping(value = "/delete/user/{id}",
-            produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserData> deleteUserData(@PathVariable("id") Integer id) {
-        Optional<UserData> toBeDeletedUser = userDataRepository.findById(id);
+    @PostMapping(value = "/delete/user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> deleteUserData(@RequestParam("username") String username) {
+        System.err.println(username);
+        // TODO fix inconsistencies inbetween inMemoryUserDetailsManager and user data repo everywhere
+        /*
         if (toBeDeletedUser.isPresent()
                 && !toBeDeletedUser.get().getUserName().equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
             for (var caffFile : toBeDeletedUser.get().getOwnFiles()) {
@@ -67,14 +68,17 @@ public class ManagementApiController {
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
+        */
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @RequestMapping(value = "/modify/user")
-    public ResponseEntity<?> modifyUserPassword(@RequestBody @Validated UserData toBeModifiedUserData) {
-        UserDetails toBeModifiedUserDetails = inMemoryUserDetailsManager.loadUserByUsername(toBeModifiedUserData.getUserName());
+    @PostMapping(value = "/modify/user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> modifyUserPassword(@RequestParam("username") String username, @RequestParam("password") String password) {
+        System.err.println(username);
+        System.err.println(password);
+        UserDetails toBeModifiedUserDetails = inMemoryUserDetailsManager.loadUserByUsername(username);
 
-        String password = toBeModifiedUserDetails.getPassword();
         if (password != null) {
             String specialChars = "~`!@#$%^&*()-_=+\\|[{]};:'\",<.>/?";
             boolean numberPresent = false;
@@ -104,6 +108,7 @@ public class ManagementApiController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping(value = "/users",
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> getAllUsers() {
