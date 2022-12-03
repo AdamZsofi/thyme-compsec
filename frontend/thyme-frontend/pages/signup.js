@@ -51,7 +51,11 @@ export default function SignIn() {
   }
 
   async function handleSubmit() {
-    postUserRegistration(state.username, state.password, router);
+    if(state.errorMessage==='Password OK') {
+      postUserRegistration(state.username, state.password, router);
+    } else {
+        alert("Password is not strong enough!");
+    }
   }
 
   return (
