@@ -26,6 +26,11 @@ public class UserData {
     @JsonIgnore
     private List<CaffFile> ownFiles;
 
+    @OneToMany(mappedBy = "userData")
+    @JsonManagedReference
+    @JsonIgnore
+    private List<CaffFile> downloadableFiles;
+
     private String password;
 
     public UserData() {}
@@ -53,6 +58,14 @@ public class UserData {
 
     public void setOwnFiles(List<CaffFile> ownFiles) {
         this.ownFiles = ownFiles;
+    }
+
+    public List<CaffFile> getDownloadableFiles() {
+        return downloadableFiles;
+    }
+
+    public void setDownloadableFiles(List<CaffFile> downloadableFiles) {
+        this.downloadableFiles = downloadableFiles;
     }
 
     public String getPassword() {

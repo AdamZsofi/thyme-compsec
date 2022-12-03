@@ -192,9 +192,19 @@ public class CaffApiController {
     }
 
     @PostMapping(value = "/buy", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> buyCaffFile(@RequestParam("id") String id) {
-        // TODO add user and id to list that the user bought the caff?
-        return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
+    public ResponseEntity<?> buyCaffFile(@RequestParam("id") Integer id) {
+        Optional<CaffFile> optionalCaffFile = caffFileRepository.findById(id);
+        if (optionalCaffFile.isPresent()) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
+            UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
+            List<CaffFile> downloadableFiles = userData.getDownloadableFiles();
+            downloadableFiles.add(optionalCaffFile.get());
+            userData.setDownloadableFiles(downloadableFiles);
+            return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     /*
@@ -203,15 +213,21 @@ public class CaffApiController {
     @GetMapping(value = "/download/{id}",
         produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
     public @ResponseBody byte[] downloadCaffFile(@PathVariable Integer id) {
-        // TODO check if user can download it
-        Optional<CaffFile> caffFile = caffFileRepository.findById(id);
-        if (caffFile.isPresent()) {
-            try {
-                InputStream in = new FileInputStream(
-                    caffFile.get().getCaffPath(storageFolder.getStorageFolder()).toFile());
-                return IOUtils.toByteArray(in);
-            } catch (IOException | URISyntaxException e) {
-                logger.error("Could not get caff file");
+        Optional<CaffFile> optionalCaffFile = caffFileRepository.findById(id);
+        if (optionalCaffFile.isPresent()) {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            UserDetails userDetails = inMemoryUserDetailsManager.loadUserByUsername(authentication.getName());
+            UserData userData = userDataRepository.findUserDataByUsername(userDetails.getUsername());
+            if (userData.getDownloadableFiles().contains(optionalCaffFile.get())) {
+                try {
+                    InputStream in = new FileInputStream(
+                            optionalCaffFile.get().getCaffPath(storageFolder.getStorageFolder()).toFile());
+                    return IOUtils.toByteArray(in);
+                } catch (IOException | URISyntaxException e) {
+                    logger.error("Could not get caff file");
+                    return new byte[0];
+                }
+            } else {
                 return new byte[0];
             }
         } else {
