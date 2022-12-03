@@ -269,3 +269,27 @@ async function downloadCaff(id) {
     alert("Could not download caff, try to buy it again!")
   }
 }
+
+export async function logout(router) {
+  const csrf = await getCsrfToken();
+
+  const res = await fetch(server_address + '/user/logout', {
+    method: "POST",
+    mode: 'cors',
+    credentials: 'include',
+    headers: {
+      "X-CSRF-TOKEN": csrf.token
+    },
+  })
+  if (res.ok) {
+    router.push("/signin");
+  } else {
+    if(res.status==401) {
+      alert("Bad credentials");
+    } else if (res.status==500) {
+      alert("Server error");
+    } else {
+      alert("Unknown Error")
+    }
+  } 
+}

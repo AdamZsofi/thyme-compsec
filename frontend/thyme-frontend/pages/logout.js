@@ -1,12 +1,9 @@
 import React from 'react';
 import { useRouter } from 'next/router';
+import { logout } from '../components/rest-api-calls.js'
 
 function handleLogout(router) {
-    //TODO server logout
-    console.log("TODO server logout");
-    //router.push({
-    //    pathname: '/signin'
-    //});
+    logout(router);
 }
 
 function LogoutPage(props) {

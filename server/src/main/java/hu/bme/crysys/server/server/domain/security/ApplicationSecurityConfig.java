@@ -66,12 +66,18 @@ public class ApplicationSecurityConfig {
                     .passwordParameter("password")
                 .and().logout()
                     .logoutUrl("/user/logout")
+                    .addLogoutHandler(corsLogoutHandler())
                     .clearAuthentication(true)
                     .invalidateHttpSession(true)
                     .deleteCookies("JSESSIONID")
                 .and().exceptionHandling()
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 .and().build();
+    }
+
+    @Bean
+    public CorsLogoutHandler corsLogoutHandler() {
+        return new CorsLogoutHandler();
     }
 
     @Bean
