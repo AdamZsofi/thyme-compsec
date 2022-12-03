@@ -1,6 +1,7 @@
 package hu.bme.crysys.server.server.controller;
 
 import hu.bme.crysys.server.server.domain.database.UserData;
+import hu.bme.crysys.server.server.repository.UserDataRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,8 @@ public class UserController {
 
     @Autowired
     private InMemoryUserDetailsManager inMemoryUserDetailsManager;
+    @Autowired
+    private UserDataRepository userDataRepository;
 
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
 
@@ -41,7 +44,6 @@ public class UserController {
         return new ResponseEntity<>(Boolean.TRUE.toString(), HttpStatus.OK);
     }
 
-    //@PreAuthorize("!isAuthenticated()")
     @PostMapping(value = "/register",
         consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> registerUser(@RequestParam("username") String username, @RequestParam("password") String password) {
@@ -75,6 +77,8 @@ public class UserController {
                             .roles(USER.name())
                             .build();
                     inMemoryUserDetailsManager.createUser(userDetails);
+                    UserData userData = new UserData(username);
+                    userDataRepository.saveAndFlush(userData);
                     return new ResponseEntity<>(HttpStatus.OK);
                 } else {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

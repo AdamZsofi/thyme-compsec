@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sun.istack.NotNull;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,9 +32,14 @@ public class UserData {
     @JsonIgnore
     private List<CaffFile> downloadableFiles;
 
+    @JsonIgnore
     private String password;
 
-    public UserData() {}
+    public UserData(String userName) {
+        this.userName = userName;
+        this.ownFiles = new ArrayList<>();
+        this.downloadableFiles = new ArrayList<>();
+    }
 
     public Integer getId() {
         return id;
@@ -68,6 +74,7 @@ public class UserData {
         this.downloadableFiles = downloadableFiles;
     }
 
+    @JsonIgnore
     public String getPassword() {
         return password;
     }

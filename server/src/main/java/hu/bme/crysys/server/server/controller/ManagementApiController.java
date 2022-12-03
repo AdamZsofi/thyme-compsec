@@ -54,22 +54,18 @@ public class ManagementApiController {
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping(value = "/delete/user", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> deleteUserData(@RequestParam("username") String username) {
-        System.err.println(username);
-        // TODO fix inconsistencies inbetween inMemoryUserDetailsManager and user data repo everywhere
-        /*
-        if (toBeDeletedUser.isPresent()
-                && !toBeDeletedUser.get().getUserName().equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
-            for (var caffFile : toBeDeletedUser.get().getOwnFiles()) {
+        UserData toBeDeletedUser = userDataRepository.findUserDataByUsername(username);
+        if (!toBeDeletedUser.getUserName().equals(SecurityContextHolder.getContext().getAuthentication().getName())) {
+            for (var caffFile : toBeDeletedUser.getOwnFiles()) {
                 caffCommentRepository.deleteAll(caffFile.getComments());
                 caffFileRepository.delete(caffFile);
             }
-            userDataRepository.delete(toBeDeletedUser.get());
-            return new ResponseEntity<>(toBeDeletedUser.get(), HttpStatus.OK);
+            userDataRepository.delete(toBeDeletedUser);
+            inMemoryUserDetailsManager.deleteUser(username);
+            return new ResponseEntity<>(toBeDeletedUser, HttpStatus.OK);
         } else {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
-        */
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -116,7 +112,7 @@ public class ManagementApiController {
         for (var user : userDataRepository.findAll()) {
             Collection<? extends GrantedAuthority> auths =
                     inMemoryUserDetailsManager.loadUserByUsername(user.getUserName()).getAuthorities();
-            if (!auths.toString().contains(ADMIN.name())) { // TODO check
+            if (!auths.toString().contains(ADMIN.name())) {
                 JSONObject innerJson = new JSONObject();
                 innerJson.put("id", user.getId());
                 innerJson.put("username", user.getUserName());
