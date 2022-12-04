@@ -1,0 +1,156 @@
+body {
+  font: 14px "Century Gothic", Futura, sans-serif;
+  margin: 20px;
+}
+
+ol, ul {
+  padding-left: 30px;
+}
+
+button {
+  padding: 6px;
+  background: rgb(239, 239, 239);
+  font-size: 17px;
+  color: black;
+  border: none;
+  cursor: pointer;
+}
+
+.card {
+  /* Add shadows to create the "card" effect */
+  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+  transition: 0.3s;
+  padding: 10px;
+  background-color: rgb(236, 255, 230);
+}
+
+.card a {
+  text-decoration: none;
+  color: black;
+}
+
+/* On mouse-over, add a deeper shadow */
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+}
+
+/* Add some padding inside the card container */
+.container {
+  padding: 2px 16px;
+}
+
+.grid-container {
+  display: inline-grid;
+  grid-template-columns: auto auto auto auto;
+  gap: 20px 20px;
+}
+
+html {background-color: rgb(247, 255, 253)}
+
+/******** HEADER *******/
+
+/* Style the header with a grey background and some padding */
+.header {
+  overflow: hidden;
+  background-color: #62a047;
+  padding: 0px 0px;
+  margin-bottom: 15px;
+}
+
+/* Style the header links */
+.header a {
+  float: left;
+  padding: 12px;
+  border-radius: 4px;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  text-decoration: none;
+  font-size: 24px;
+}
+
+/* Style the logo link (notice that we set the same value of line-height and font-size to prevent the header to increase when the font gets bigger */
+.header a.logo {
+  display: inline;
+  font-size: 25px;
+  font-weight: bold;
+  text-align: center;
+}
+
+.logoImg {
+  width: 70px;
+  margin-right: 10px;
+  vertical-align: middle
+}
+
+.shopName {
+  vertical-align: middle
+}
+
+/* Change the background color on mouse-over */
+.header a:hover {
+  background-color: #7bca59;
+  color: rgb(255, 255, 255);
+}
+
+/* Style the active/current link*/
+.header a.active {
+  background-color: rgb(38, 138, 41);
+  color: white;
+}
+
+/* Float the link section to the right */
+.header-right {
+  vertical-align: middle;
+  float: right;
+}
+
+/* Style the search box inside the navigation bar */
+.header input[type=text] {
+  float: right;
+  padding: 6px;
+  border: none;
+  margin-top: 8px;
+  margin-right: 16px;
+  font-size: 17px;
+}
+
+.header button {
+  float: right;
+  margin-top: 8px;
+  margin-right: 10px;
+}
+
+button:hover {
+  background: rgb(192, 192, 192);
+}
+
+/******** HEADER END *******/
+
+/******** CAFF INFO PAGE *******/
+.caffImage {
+  max-height: 450px;
+  max-width: 500px;
+  height: auto;
+}
+
+.caff-page-row .column {
+  float: left;
+  width: 50%;
+}
+
+/* Clear floats after the columns */
+.caff-page-row:after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.upload-btn {
+  background-color:#62a047;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.upload-btn:hover {
+  background-color: #7bca59;
+}

@@ -1,0 +1,17 @@
+FROM ubuntu:22.04
+SHELL ["/bin/bash", "--login", "-i", "-c"]
+
+RUN apt-get update && apt-get install -y \
+  curl
+
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.2/install.sh | bash && source /root/.bashrc && nvm install v16.16.0 && nvm use v16.16.0
+
+COPY . /app
+WORKDIR /app
+
+RUN pushd util; echo "Password" | ./certi-gen.sh; popd
+RUN pushd frontend/thyme-frontend/; npm install; popd
+
+WORKDIR /app/frontend/thyme-frontend
+
+CMD npm run start
