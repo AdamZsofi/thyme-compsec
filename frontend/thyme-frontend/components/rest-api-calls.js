@@ -190,7 +190,6 @@ async function getCsrfToken() {
       const json = await res.json();
       return json;
   } else {
-      // TODO some kind of error instead?
       return undefined;
   }
 }

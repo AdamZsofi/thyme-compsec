@@ -45,7 +45,7 @@ public class ParserController {
             System.out.println("Parser returned with code " + exitCode);
             if(exitCode != 0) {
                 System.out.println("Parsing failed");
-                return null;//todo handle null (or throw some exception)
+                return null;
             }
             result = scanAndSaveMetaData(outputFolder);
         } catch (IOException | InterruptedException e) {

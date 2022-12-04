@@ -160,7 +160,7 @@ public class CaffApiController {
                 InputStream in = new FileInputStream(fileName);
                 return IOUtils.toByteArray(in);
             } catch (IOException e) {
-                logger.error("Could not get preview"); // TODO will never jump in these, as it is using the exception handler
+                logger.error("Could not get preview"); // will never jump in these, as it is using the exception handler
                 return new byte[0];
             }
         } else {

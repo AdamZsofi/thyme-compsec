@@ -6,10 +6,8 @@ import Layout from "../components/layout"
 import styles from "../styles/signin.module.css"
 import Link from 'next/link.js';
 
-// TODO do we want client side hashing?
 // source: https://www.fullstackbook.com/code/nextjs-jwt/
 export default function SignIn() {
-  // TODO not used in login, should be used in any other not GET
   // get csrf token, source: https://devdojo.com/ketonemaniac/doing-spring-securitys-csrf-tokens-the-right-way-with-react
 
   const router = useRouter()
