@@ -196,7 +196,7 @@ async function getCsrfToken() {
 
 export async function uploadComment(comment, caffId) {
   const formData = new FormData();
-
+  console.log("meghivodik");
   formData.append("comment", comment);
   formData.append("file_id", caffId);
   
@@ -213,7 +213,7 @@ export async function uploadComment(comment, caffId) {
   })
   if (res.ok) {
     alert("Successfully submitted comment");
-    router.push("/");
+    //router.push("/");
   } else {
     alert("Comment submission unsuccessful, try again!")
   }

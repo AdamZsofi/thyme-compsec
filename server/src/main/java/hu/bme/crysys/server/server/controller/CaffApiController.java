@@ -310,7 +310,7 @@ public class CaffApiController {
                 logger.error(filePath+": a file of that name already exists.");
             } else {
                 logger.error("Unknown error while saving caff file.");
-                logger.error(e.getMessage());
+                //logger.error(e.getMessage());
             }
 
             return false;

@@ -136,7 +136,7 @@ class CommentBox extends React.Component {
     this.setState({comment: e.target.value});
   }
 
-  handleSubmit(e) {
+  handleSubmit() {
     uploadComment(this.state.comment, this.props.caffId);
   }
 
@@ -144,11 +144,11 @@ class CommentBox extends React.Component {
     return (
       <div>
         <h2>Add your comment here:</h2>
-        <form id="comment-form">
-          <textarea rows="5" cols="70" name="comment" onChange={this.handleChange.bind(this)} value={this.state.comment}></textarea>
+        <div id="comment-form">
+          <textarea rows="5" cols="70" name="comment" onChange={e => this.handleChange(e)} value={this.state.comment}></textarea>
           <br />
           <button onClick={this.handleSubmit.bind(this)}>Submit Comment</button>
-        </form>
+        </div>
       </div>
     );
   }
