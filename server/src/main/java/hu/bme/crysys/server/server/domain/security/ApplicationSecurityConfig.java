@@ -113,12 +113,23 @@ public class ApplicationSecurityConfig {
     @Bean
     public InMemoryUserDetailsManager inMemoryUserDetailsManager() {
         InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
+
+        String userPass = System.getenv("THYME_USER_PASS");
+        if(userPass == null){
+            throw new RuntimeException("THYME_USER_PASS needs to be set");
+        }
+
+        String adminPass = System.getenv("THYME_ADMIN_PASS");
+        if(adminPass == null){
+            throw new RuntimeException("THYME_ADMIN_PASS needs to be set");
+        }
+
         manager.createUser(User.withUsername("user")
-                .password(passwordEncoder.encode("userPass"))
+                .password(passwordEncoder.encode(userPass))
                 .roles(USER.name())
                 .build());
         manager.createUser(User.withUsername("admin")
-                .password(passwordEncoder.encode("adminPass"))
+                .password(passwordEncoder.encode(adminPass))
                 .roles(ADMIN.name())
                 .build());
         return manager;
