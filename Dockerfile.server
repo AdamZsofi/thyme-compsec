@@ -1,0 +1,21 @@
+FROM ubuntu:22.04
+SHELL ["/bin/bash", "--login", "-i", "-c"]
+
+RUN apt-get update && apt-get install -y \
+  openjdk-17-jre-headless
+
+COPY . /app
+WORKDIR /app
+
+RUN mkdir -p /app/store
+
+ENV THYME_STORE=/app/store
+ENV THYME_USER_PASS=userPass
+ENV THYME_ADMIN_PASS=adminPass
+
+RUN pushd util; echo "Password" | ./certi-gen.sh; popd
+RUN pushd server; ./gradlew build -x test; popd
+
+WORKDIR /app/server
+
+CMD ./gradlew bootRun -x test
