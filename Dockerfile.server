@@ -2,14 +2,12 @@ FROM ubuntu:22.04
 SHELL ["/bin/bash", "--login", "-i", "-c"]
 
 RUN apt-get update && apt-get install -y \
-  openjdk-17-jre-headless
+  openjdk-17-jdk-headless
 
 COPY . /app
 WORKDIR /app
 
-RUN mkdir -p /app/store
-
-ENV THYME_STORE=/app/store
+ENV THYME_STORE=/app/store/caffs
 ENV THYME_USER_PASS=userPass
 ENV THYME_ADMIN_PASS=adminPass
 

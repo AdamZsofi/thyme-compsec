@@ -35,6 +35,11 @@ public class UserData {
     @JsonIgnore
     private String password;
 
+    public UserData() {
+        this.ownFiles = new ArrayList<>();
+        this.downloadableFiles = new ArrayList<>();
+    }
+
     public UserData(String userName) {
         this.userName = userName;
         this.ownFiles = new ArrayList<>();
